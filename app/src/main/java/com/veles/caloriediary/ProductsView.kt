@@ -3,6 +3,7 @@ package com.veles.caloriediary
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
+import android.database.sqlite.SQLiteConstraintException
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -36,7 +37,7 @@ class ProductsView(private val activity: Activity) {
         refreshList()
     }
 
-    private fun refreshList() {
+    fun refreshList() {
         listView.adapter = ProductAdapter(db.products(searchInput.text.toString()))
     }
 
@@ -56,8 +57,14 @@ class ProductsView(private val activity: Activity) {
                 "${product.name} • ${fmt(n.kcal)} ккал / Б ${fmt(n.protein)} / " +
                     "Ж ${fmt(n.fat)} / У ${fmt(n.carbs)} (на 100 г)"
             row.findViewById<Button>(R.id.deleteProductButton).setOnClickListener {
-                db.deleteProduct(product.id)
-                refreshList()
+                AlertDialog.Builder(activity)
+                    .setTitle(R.string.confirm_delete)
+                    .setPositiveButton(R.string.delete) { _, _ ->
+                        db.deleteProduct(product.id)
+                        refreshList()
+                    }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
             }
             return row
         }
@@ -99,7 +106,16 @@ class ProductsView(private val activity: Activity) {
                     return@setOnClickListener
                 }
                 val id = product?.id ?: 0L
-                db.saveProduct(Product(id, name, Nutrients(kcal, protein, fat, carbs)))
+                val savedId = try {
+                    db.saveProduct(Product(id, name, Nutrients(kcal, protein, fat, carbs)))
+                } catch (e: SQLiteConstraintException) {
+                    Toast.makeText(activity, R.string.duplicate_product, Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                if (savedId < 0) {
+                    Toast.makeText(activity, R.string.duplicate_product, Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 dialog.dismiss()
                 refreshList()
             }

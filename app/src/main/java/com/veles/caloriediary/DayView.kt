@@ -20,7 +20,7 @@ import android.widget.Toast
 import java.util.Calendar
 import java.util.Locale
 
-class DayView(private val activity: Activity) {
+class DayView(private val activity: Activity, initialDate: String? = null) {
 
     val view: View = LayoutInflater.from(activity).inflate(R.layout.fragment_day, null)
     private val db = Db(activity)
@@ -35,7 +35,7 @@ class DayView(private val activity: Activity) {
 
     init {
         val now = Calendar.getInstance()
-        selectedDate = dateKey(
+        selectedDate = initialDate ?: dateKey(
             now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1, now.get(Calendar.DAY_OF_MONTH)
         )
         view.findViewById<Button>(R.id.prevWeek).setOnClickListener { shiftWeek(-7) }
@@ -60,7 +60,14 @@ class DayView(private val activity: Activity) {
         }
     }
 
-    private fun refresh() {
+    val selectedDateKey: String get() = selectedDate
+
+    fun restoreDate(key: String) {
+        selectedDate = key
+        refresh()
+    }
+
+    fun refresh() {
         val cal = calendarOf(selectedDate)
         monthLabel.text = "${months[cal.get(Calendar.MONTH)]} ${cal.get(Calendar.YEAR)}"
         renderWeek()
@@ -79,8 +86,14 @@ class DayView(private val activity: Activity) {
             row.findViewById<TextView>(R.id.entryText).text =
                 "${entry.productName} • ${fmt(entry.grams)} г • ${fmt(entry.values.kcal)} ккал"
             row.findViewById<Button>(R.id.deleteEntryButton).setOnClickListener {
-                db.deleteEntry(entry.id)
-                refresh()
+                android.app.AlertDialog.Builder(activity)
+                    .setTitle(R.string.confirm_delete)
+                    .setPositiveButton(R.string.delete) { _, _ ->
+                        db.deleteEntry(entry.id)
+                        refresh()
+                    }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
             }
             entryList.addView(row)
         }
@@ -93,16 +106,11 @@ class DayView(private val activity: Activity) {
 
     private fun renderWeek() {
         dayStrip.removeAllViews()
-        val cal = calendarOf(selectedDate)
-        cal.firstDayOfWeek = Calendar.MONDAY
-        val offset = (cal.get(Calendar.DAY_OF_WEEK) - cal.firstDayOfWeek + 7) % 7
-        cal.add(Calendar.DAY_OF_MONTH, -offset)
-
-        for (i in 0..6) {
-            val year = cal.get(Calendar.YEAR)
-            val month = cal.get(Calendar.MONTH) + 1
-            val day = cal.get(Calendar.DAY_OF_MONTH)
-            val key = dateKey(year, month, day)
+        weekDates(selectedDate).forEachIndexed { i, key ->
+            val parts = key.split("-")
+            val year = parts[0].toInt()
+            val month = parts[1].toInt()
+            val day = parts[2].toInt()
             val button = Button(activity)
             button.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             button.minWidth = 0
@@ -127,7 +135,6 @@ class DayView(private val activity: Activity) {
                 true
             }
             dayStrip.addView(button)
-            cal.add(Calendar.DAY_OF_MONTH, 1)
         }
     }
 
@@ -194,6 +201,10 @@ class DayView(private val activity: Activity) {
                         return@setOnClickListener
                     }
                     val id = db.saveProduct(Product(0, name, Nutrients(kcal, protein, fat, carbs)))
+                    if (id < 0) {
+                        toast(activity.getString(R.string.duplicate_product))
+                        return@setOnClickListener
+                    }
                     product = db.products().first { it.id == id }
                 }
 

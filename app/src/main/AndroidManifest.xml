@@ -3,7 +3,7 @@
 
     <application
         android:allowBackup="true"
-        android:label="Дневник калорий"
+        android:label="@string/app_name"
         android:supportsRtl="false">
 
         <activity

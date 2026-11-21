@@ -8,28 +8,53 @@ import android.widget.FrameLayout
 
 class MainActivity : Activity() {
 
+    private lateinit var dayView: DayView
+    private lateinit var productsView: ProductsView
+    private lateinit var profileView: ProfileView
+    private var activeTab = TAB_DAY
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        dayView = DayView(this, savedInstanceState?.getString(KEY_DATE))
+        productsView = ProductsView(this)
+        profileView = ProfileView(this)
+
         val container = findViewById<FrameLayout>(R.id.container)
-        val dayView = DayView(this).view
-        val productsView = ProductsView(this).view
-        val profileView = ProfileView(this).view
-        container.addView(dayView)
-        container.addView(productsView)
-        container.addView(profileView)
+        container.addView(dayView.view)
+        container.addView(productsView.view)
+        container.addView(profileView.view)
 
-        findViewById<Button>(R.id.tabDay).setOnClickListener { select(dayView, productsView, profileView) }
-        findViewById<Button>(R.id.tabProducts).setOnClickListener { select(productsView, dayView, profileView) }
-        findViewById<Button>(R.id.tabProfile).setOnClickListener { select(profileView, dayView, productsView) }
+        findViewById<Button>(R.id.tabDay).setOnClickListener { select(TAB_DAY) }
+        findViewById<Button>(R.id.tabProducts).setOnClickListener { select(TAB_PRODUCTS) }
+        findViewById<Button>(R.id.tabProfile).setOnClickListener { select(TAB_PROFILE) }
 
-        select(dayView, productsView, profileView)
+        select(savedInstanceState?.getString(KEY_TAB) ?: TAB_DAY)
     }
 
-    private fun select(active: View, first: View, second: View) {
-        active.visibility = View.VISIBLE
-        first.visibility = if (first === active) View.VISIBLE else View.GONE
-        second.visibility = if (second === active) View.VISIBLE else View.GONE
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(KEY_TAB, activeTab)
+        outState.putString(KEY_DATE, dayView.selectedDateKey)
+    }
+
+    private fun select(tab: String) {
+        activeTab = tab
+        dayView.view.visibility = if (tab == TAB_DAY) View.VISIBLE else View.GONE
+        productsView.view.visibility = if (tab == TAB_PRODUCTS) View.VISIBLE else View.GONE
+        profileView.view.visibility = if (tab == TAB_PROFILE) View.VISIBLE else View.GONE
+        when (tab) {
+            TAB_DAY -> dayView.refresh()
+            TAB_PRODUCTS -> productsView.refreshList()
+        }
+    }
+
+    companion object {
+        private const val KEY_TAB = "activeTab"
+        private const val KEY_DATE = "selectedDate"
+        private const val TAB_DAY = "day"
+        private const val TAB_PRODUCTS = "products"
+        private const val TAB_PROFILE = "profile"
     }
 }

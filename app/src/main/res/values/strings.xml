@@ -23,4 +23,7 @@
     <string name="enter_weight">Укажите вес</string>
     <string name="per_100">на 100 г</string>
     <string name="create_product">Создать продукт</string>
+    <string name="confirm_delete">Удалить запись?</string>
+    <string name="duplicate_product">Такой продукт уже есть</string>
+    <string name="remove">×</string>
 </resources>

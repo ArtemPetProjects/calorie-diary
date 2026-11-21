@@ -1,5 +1,6 @@
 package com.veles.caloriediary
 
+import java.util.Calendar
 import kotlin.math.round
 
 data class Nutrients(val kcal: Double, val protein: Double, val fat: Double, val carbs: Double)
@@ -33,5 +34,24 @@ fun progress(current: Double, target: Double): Int {
 
 fun dateKey(year: Int, month: Int, day: Int): String =
     "%04d-%02d-%02d".format(year, month, day)
+
+// Понедельник — воскресенье недели, содержащей дату key.
+fun weekDates(key: String): List<String> {
+    val parts = key.split("-")
+    val cal = Calendar.getInstance().apply {
+        clear()
+        set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+        firstDayOfWeek = Calendar.MONDAY
+    }
+    val offset = (cal.get(Calendar.DAY_OF_WEEK) - cal.firstDayOfWeek + 7) % 7
+    cal.add(Calendar.DAY_OF_MONTH, -offset)
+    return (0..6).map {
+        val result = dateKey(
+            cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH)
+        )
+        cal.add(Calendar.DAY_OF_MONTH, 1)
+        result
+    }
+}
 
 private fun round1(value: Double): Double = round(value * 10.0) / 10.0

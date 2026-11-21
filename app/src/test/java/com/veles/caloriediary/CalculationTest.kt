@@ -48,4 +48,22 @@ class CalculationTest {
         assertEquals("2024-02-29", dateKey(2024, 2, 29))
         assertEquals("2026-11-02", dateKey(2026, 11, 2))
     }
+
+    @Test
+    fun weekDatesCrossesMonthAndLeapDay() {
+        assertEquals(
+            listOf(
+                "2024-02-26", "2024-02-27", "2024-02-28", "2024-02-29",
+                "2024-03-01", "2024-03-02", "2024-03-03"
+            ),
+            weekDates("2024-02-29")
+        )
+        assertEquals(
+            listOf(
+                "2025-12-29", "2025-12-30", "2025-12-31", "2026-01-01",
+                "2026-01-02", "2026-01-03", "2026-01-04"
+            ),
+            weekDates("2026-01-01")
+        )
+    }
 }
