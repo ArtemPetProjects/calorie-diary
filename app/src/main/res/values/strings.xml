@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Дневник калорий</string>
+    <string name="tab_day">День</string>
+    <string name="tab_products">Продукты</string>
+    <string name="tab_profile">Профиль</string>
+    <string name="prev_week">&lt;</string>
+    <string name="next_week">&gt;</string>
+    <string name="add_product">Добавить продукт</string>
+    <string name="delete">Удалить</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="kcal">Калории</string>
+    <string name="protein">Белки</string>
+    <string name="fat">Жиры</string>
+    <string name="carbs">Углеводы</string>
+    <string name="grams">Вес, г</string>
+    <string name="product_name">Продукт</string>
+    <string name="search">Поиск продукта</string>
+    <string name="save_targets">Сохранить цели</string>
+    <string name="targets_saved">Цели сохранены</string>
+    <string name="fill_targets">Заполните все цели</string>
+    <string name="enter_weight">Укажите вес</string>
+    <string name="per_100">на 100 г</string>
+    <string name="create_product">Создать продукт</string>
+</resources>

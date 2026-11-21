@@ -31,7 +31,7 @@
 
 - Android Studio и Android SDK на ПК отсутствуют. Для сборки APK нужны command-line tools SDK; их установка в `E:\AndroidSdk` — системное изменение и требует отдельного подтверждения пользователя.
 - Доступны Gradle 9.4.1, JDK 21, `https://dl.google.com/android/repository/...` (200) и Maven Central (200). Node.js отсутствует.
-- Выбор здесь: `minSdk 24` (Android 7.0), `compileSdk/targetSdk 35`, Java 17, Kotlin.
+- Выбор здесь: `minSdk 24` (Android 7.0), `compileSdk/targetSdk 37`, Java 17, Kotlin со встроенной поддержкой AGP. Стабильные версии на 22.11.2026: AGP 9.5.2, Gradle 9.9.2, SDK platform 37 / build-tools 37.0.0. Отдельный Kotlin Gradle Plugin не нужен и запрещён AGP 9.
 - Стек выбран мной из требования «максимально лёгкое и простое».
 
 ## Подходы

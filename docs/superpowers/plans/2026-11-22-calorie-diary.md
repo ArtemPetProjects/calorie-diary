@@ -6,14 +6,14 @@
 
 **Architecture:** Одно Activity с тремя вкладками на framework Fragment; вся логика расчёта в чистых Kotlin-функциях; данные в локальной SQLite через `SQLiteOpenHelper`; без AndroidX, Compose и сетевых разрешений.
 
-**Tech Stack:** Kotlin 2.4.21, Gradle 9.6.0 (wrapper), AGP 9.5.2, JDK 21, Android SDK platform 36 / build-tools 36.0.0, minSdk 24, JUnit 4.
+**Tech Stack:** Kotlin через встроенную поддержку AGP 9.5.2 (без отдельного KGP-плагина), Gradle 9.9.2 (wrapper), JDK 21, Android SDK platform 37 / build-tools 37.0.0, minSdk 24, JUnit 4.
 
 **Spec:** `E:\Projects\CalorieDiary\docs\superpowers\specs\2026-11-22-calorie-diary-design.md`
 
 ## Global Constraints
 
 - Пакет: `com.veles.caloriediary`; проект: `E:\Projects\CalorieDiary`.
-- `minSdk 24`, `compileSdk 36`, `targetSdk 36`, Java 17, `namespace = "com.veles.caloriediary"`.
+- `minSdk 24`, `compileSdk 37`, `targetSdk 37`, Java 17, `namespace = "com.veles.caloriediary"`.
 - Никаких зависимостей AndroidX/Compose/сети; только platform View и SQLite.
 - Все строки интерфейса — на русском в `res/values/strings.xml`.
 - Значения продуктов и итогов хранятся на 100 г и округляются до 1 знака.
@@ -46,27 +46,32 @@
 
 ```
 $env:ANDROID_HOME='E:\AndroidSdk'
-& 'E:\AndroidSdk\cmdline-tools\latest\bin\sdkmanager.bat' --licenses
+$sdkmgr='E:\AndroidSdk\cmdline-tools\latest\bin\sdkmanager.bat'
+$yes=(1..40 | ForEach-Object {'y'}) -join "`n"
+$yes | & $sdkmgr --licenses | Out-Null
 ```
-На все лицензии ответить `y`. Затем:
+Затем поставить пакеты через актуальный Android CLI (старый `sdkmanager` объявлен устаревшим и не понимает старый синтаксис аргументов):
 ```
-& 'E:\AndroidSdk\cmdline-tools\latest\bin\sdkmanager.bat' 'platforms;android-36' 'build-tools;36.0.0' 'platform-tools'
+$android='E:\AndroidSdk\cmdline-tools\latest\bin\android.exe'
+& $android --sdk='E:\AndroidSdk' sdk install 'platforms;android-37.0'
+& $android --sdk='E:\AndroidSdk' sdk install 'build-tools;37.0.0'
+& $android --sdk='E:\AndroidSdk' sdk install 'platform-tools'
 ```
 
 - [ ] **Step 2: Проверить установку SDK**
 
 Run: `Get-ChildItem 'E:\AndroidSdk\platforms' -Name; Get-ChildItem 'E:\AndroidSdk\build-tools' -Name`
-Expected: в списке есть `android-36` и `36.0.0`.
+Expected: в списке есть `android-37.0` и `37.0.0`.
 
 - [ ] **Step 3: Создать Gradle-проект**
 
 `settings.gradle.kts`: `pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }`, `dependencyResolutionManagement { repositories { google(); mavenCentral() } }`, `rootProject.name = "CalorieDiary"`, `include(":app")`.
 
-`build.gradle.kts` (root): plugins `com.android.application` version `9.5.2` apply false и `org.jetbrains.kotlin.android` version `2.4.21` apply false.
+`build.gradle.kts` (root): plugin `com.android.application` version `9.5.2` apply false. Отдельный Kotlin-плагин не объявлять: AGP 9.5 включает Kotlin по умолчанию и отвергает `org.jetbrains.kotlin.android`.
 
-`app\build.gradle.kts`: plugins `com.android.application`, `org.jetbrains.kotlin.android`; `android { namespace = "com.veles.caloriediary"; compileSdk = 36; defaultConfig { applicationId = "com.veles.caloriediary"; minSdk = 24; targetSdk = 36; versionCode = 1; versionName = "1.0" } }`; `java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }`; dependencies: `testImplementation("junit:junit:4.13.2")`.
+`app\build.gradle.kts`: plugin `com.android.application`; `android { namespace = "com.veles.caloriediary"; compileSdk = 37; defaultConfig { applicationId = "com.veles.caloriediary"; minSdk = 24; targetSdk = 37; versionCode = 1; versionName = "1.0" } }`; `java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }`; dependencies: `testImplementation("junit:junit:4.13.2")`.
 
-`gradle.properties`: `android.useAndroidX=false`, `org.gradle.jvmargs=-Xmx2g`.
+`gradle.properties`: только `org.gradle.jvmargs=-Xmx2g`. Не задавать `android.useAndroidX=false`: в AGP 9 это deprecated, по умолчанию true; AndroidX-зависимостей в проекте нет.
 
 - [ ] **Step 4: Создать wrapper и проверить сборку**
 
@@ -74,7 +79,7 @@ Run:
 ```
 $env:JAVA_HOME='C:\Users\veles\.jdks\ms-21.0.13.0.2'
 $env:ANDROID_HOME='E:\AndroidSdk'
-& gradle wrapper --gradle-version 9.6.0
+& gradle wrapper --gradle-version 9.9.2
 & '.\gradlew.bat' assembleDebug
 ```
 Expected: BUILD SUCCESSFUL, файл `app\build\outputs\apk\debug\app-debug.apk` существует.
@@ -111,7 +116,7 @@ Expected: BUILD SUCCESSFUL, файл `app\build\outputs\apk\debug\app-debug.apk`
   assertNull(parseGrams("")); assertNull(parseGrams("0")); assertNull(parseGrams("-5"))
 }
 @Test fun parseGramsAcceptsComma() { assertEquals(12.5, parseGrams("12,5")!!, 0.01) }
-@Test fun progressZeroTarget() { assertEquals(0, progress(500.0, 0.0)); assertEquals(0, progress(50.0, 200.0)); assertEquals(100, progress(2500.0, 2000.0)) }
+@Test fun progressZeroTarget() { assertEquals(0, progress(500.0, 0.0)); assertEquals(25, progress(50.0, 200.0)); assertEquals(100, progress(2500.0, 2000.0)) }
 @Test fun dateKeyPadsAndHandlesLeapDay() {
   assertEquals("2024-02-29", dateKey(2024, 2, 29))
   assertEquals("2026-11-02", dateKey(2026, 11, 2))
