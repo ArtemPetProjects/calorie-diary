@@ -4,7 +4,7 @@
 
 **Goal:** Собрать устанавливаемый APK офлайн-дневника калорий с календарём, добавлением продукта по весу, полосками КБЖУ и целями в профиле.
 
-**Architecture:** Одно Activity с тремя вкладками на framework Fragment; вся логика расчёта в чистых Kotlin-функциях; данные в локальной SQLite через `SQLiteOpenHelper`; без AndroidX, Compose и сетевых разрешений.
+**Architecture:** Одно Activity с тремя view-контроллерами, переключаемыми через видимость; вся логика расчёта в чистых Kotlin-функциях; данные в локальной SQLite через `SQLiteOpenHelper`; без AndroidX, Compose, deprecated Fragment API и сетевых разрешений.
 
 **Tech Stack:** Kotlin через встроенную поддержку AGP 9.5.2 (без отдельного KGP-плагина), Gradle 9.9.2 (wrapper), JDK 21, Android SDK platform 37 / build-tools 37.0.0, minSdk 24, JUnit 4.
 
@@ -192,22 +192,22 @@ Expected: BUILD SUCCESSFUL.
 
 **Files:**
 - Create: `app\src\main\res\layout\fragment_day.xml`, `dialog_entry.xml`, `item_entry.xml`
-- Create: `app\src\main\java\com\veles\caloriediary\DayFragment.kt`
+- Create: `app\src\main\java\com\veles\caloriediary\DayView.kt`
 - Modify: `app\src\main\AndroidManifest.xml` (MainActivity as launcher)
 
 **Interfaces:**
 - Consumes: `Db`, `Entry`, `Nutrients`, `forWeight`, `parseGrams`, `progress`, `dateKey`, `sum`.
-- Produces: `fun newInstance(): DayFragment`; метод `refresh()` обновляет полоски и список.
+- Produces: `DayView(activity: Activity)` со свойством `view: View`; метод `refresh()` обновляет полоски и список.
 
 - [ ] **Step 1: Сделать каркас MainActivity с тремя кнопками**
 
-`activity_main.xml`: вертикальный `LinearLayout`, `FrameLayout android:id="@+id/container"`, нижний `LinearLayout` с тремя `Button`: `День`, `Продукты`, `Профиль`. `MainActivity.kt`: `onCreate` показывает `DayFragment`; кнопки меняют фрагмент через `getFragmentManager().beginTransaction().replace(R.id.container, fragment).commit()`. Использовать `android.app.Fragment` — AndroidX не подключён.
+`activity_main.xml`: вертикальный `LinearLayout`, `FrameLayout android:id="@+id/container"`, нижний `LinearLayout` с тремя `Button`: `День`, `Продукты`, `Профиль`. `MainActivity.kt`: `onCreate` создаёт `DayView`, `ProductsView`, `ProfileView`, добавляет их `view` в контейнер и переключает видимостью. `android.app.Fragment` не использовать: API помечен deprecated.
 
 - [ ] **Step 2: Сверстать fragment_day.xml**
 
 Вверху `TextView` с месяцем, кнопки «<» и «>», `LinearLayout android:id="@+id/dayStrip"` с семью `Button` (Пн–Вс). Ниже четыре строки: `TextView` подписи, `ProgressBar style="?android:attr/progressBarStyleHorizontal"` и `TextView` «current / target» для калорий, белков, жиров, углеводов. Кнопка «Добавить продукт». `LinearLayout android:id="@+id/entryList"` для строк еды.
 
-- [ ] **Step 3: Реализовать DayFragment**
+- [ ] **Step 3: Реализовать DayView**
 
 При создании выбрать сегодня через `Calendar.getInstance()`: `dateKey(year, month+1, day)`, `selectedDate`. `renderWeek()` рисует 7 кнопок недели, содержащей выбранный день; стрелки сдвигают неделю на ±7 дней; клик по дню выбирает его; долгий клик открывает `DatePickerDialog` с initial year/month/day. `refresh()` берёт `db.entries(selectedDate)`, считает `sum`, для каждого поля вызывает `progress(current, target)` из `db.targets()`, обновляет four ProgressBar и подписи, строит строки из `item_entry.xml`: «название • N г • M ккал» и кнопку «×» → `db.deleteEntry(id)` + `refresh()`.
 
@@ -226,17 +226,17 @@ Expected: BUILD SUCCESSFUL; `git commit -m "feat: add day tab with calendar and 
 
 **Files:**
 - Create: `app\src\main\res\layout\fragment_products.xml`, `dialog_product.xml`, `item_product.xml`
-- Create: `app\src\main\java\com\veles\caloriediary\ProductsFragment.kt`
+- Create: `app\src\main\java\com\veles\caloriediary\ProductsView.kt`
 
 **Interfaces:**
 - Consumes: `Db`, `Product`, `Nutrients`.
-- Produces: `fun newInstance(): ProductsFragment`.
+- Produces: `ProductsView(activity: Activity)` со свойством `view: View`.
 
 - [ ] **Step 1: Сверстать экран и диалог**
 
 `fragment_products.xml`: `EditText` поиска, `Button` «Добавить продукт», `ListView android:id="@+id/productList"`. `dialog_product.xml`: поля «Название», «Ккал», «Белки», «Жиры», «Углеводы» (все на 100 г) и кнопки «Сохранить»/«Отмена». `item_product.xml`: название и «Н ккал / Б Ж У на 100 г».
 
-- [ ] **Step 2: Реализовать ProductsFragment**
+- [ ] **Step 2: Реализовать ProductsView**
 
 `onCreateView`: загрузить `db.products("")`, показать в `ListView`. Поиск фильтрует через `db.products(query)`. Клик по строке открывает `dialog_product.xml`, заполненный значениями продукта; «Сохранить» вызывает `db.saveProduct` с тем же id. Кнопка «Добавить продукт» открывает пустой диалог. В каждой строке кнопка «×» вызывает `db.deleteProduct(id)` — прошлая история не меняется, потому что `entries` хранит снимок.
 
@@ -251,11 +251,11 @@ Expected: BUILD SUCCESSFUL; `git commit -m "feat: add products tab with editable
 
 **Files:**
 - Create: `app\src\main\res\layout\fragment_profile.xml`
-- Create: `app\src\main\java\com\veles\caloriediary\ProfileFragment.kt`
+- Create: `app\src\main\java\com\veles\caloriediary\ProfileView.kt`
 
 **Interfaces:**
 - Consumes: `Db.targets()`, `Db.saveTargets()`.
-- Produces: `fun newInstance(): ProfileFragment`.
+- Produces: `ProfileView(activity: Activity)` со свойством `view: View`.
 
 - [ ] **Step 1: Сверстать профиль**
 
