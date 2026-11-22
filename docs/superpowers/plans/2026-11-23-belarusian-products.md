@@ -2,33 +2,33 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Добавить в офлайн-базу дневника калорийности не менее 30 белорусских молочных продуктов с брендом в названии и проверенными КБЖУ.
+**Goal:** Р”РѕР±Р°РІРёС‚СЊ РІ РѕС„Р»Р°Р№РЅ-Р±Р°Р·Сѓ РґРЅРµРІРЅРёРєР° РєР°Р»РѕСЂРёР№РЅРѕСЃС‚Рё РЅРµ РјРµРЅРµРµ 30 Р±РµР»РѕСЂСѓСЃСЃРєРёС… РјРѕР»РѕС‡РЅС‹С… РїСЂРѕРґСѓРєС‚РѕРІ СЃ Р±СЂРµРЅРґРѕРј РІ РЅР°Р·РІР°РЅРёРё Рё РїСЂРѕРІРµСЂРµРЅРЅС‹РјРё РљР‘Р–РЈ.
 
-**Architecture:** Новый JSON-ассет с такой же схемой, как у расширенной базы; реестр источников в CSV; импорт ассета в `Db.kt` через `INSERT OR IGNORE` при создании и при обновлении до версии 9. Схема таблиц не меняется; поиск работает через существующее поле `search_name`.
+**Architecture:** РќРѕРІС‹Р№ JSON-Р°СЃСЃРµС‚ СЃ С‚Р°РєРѕР№ Р¶Рµ СЃС…РµРјРѕР№, РєР°Рє Сѓ СЂР°СЃС€РёСЂРµРЅРЅРѕР№ Р±Р°Р·С‹; СЂРµРµСЃС‚СЂ РёСЃС‚РѕС‡РЅРёРєРѕРІ РІ CSV; РёРјРїРѕСЂС‚ Р°СЃСЃРµС‚Р° РІ `Db.kt` С‡РµСЂРµР· `INSERT OR IGNORE` РїСЂРё СЃРѕР·РґР°РЅРёРё Рё РїСЂРё РѕР±РЅРѕРІР»РµРЅРёРё РґРѕ РІРµСЂСЃРёРё 9. РЎС…РµРјР° С‚Р°Р±Р»РёС† РЅРµ РјРµРЅСЏРµС‚СЃСЏ; РїРѕРёСЃРє СЂР°Р±РѕС‚Р°РµС‚ С‡РµСЂРµР· СЃСѓС‰РµСЃС‚РІСѓСЋС‰РµРµ РїРѕР»Рµ `search_name`.
 
-**Tech Stack:** AGP 9.5.2, Gradle 9.9.2, SDK 37, SQLite, JUnit 4; без AndroidX/Compose и без сетевых запросов из приложения.
+**Tech Stack:** AGP 9.5.2, Gradle 9.9.2, SDK 37, SQLite, JUnit 4; Р±РµР· AndroidX/Compose Рё Р±РµР· СЃРµС‚РµРІС‹С… Р·Р°РїСЂРѕСЃРѕРІ РёР· РїСЂРёР»РѕР¶РµРЅРёСЏ.
 
 **Spec:** `E:\Projects\CalorieDiary\docs\superpowers\specs\2026-11-23-belarusian-products-design.md`
 
 ## Global Constraints
-- Приложение остаётся офлайн; сеть используется только при подготовке данных на этапе разработки.
-- Бренд входит в `name`, поле `brand` не добавляется; `name` уникально.
-- Любая позиция имеет все четыре числа: `kcal`, `protein`, `fat`, `carbs`. Частичные данные запрещены.
-- Каждая позиция имеет строку в реестре источников с непустым URL.
-- Версия БД поднимается с 8 до 9; схема не меняется; существующие строки не перезаписываются.
-- Новые пользовательские строки — в `strings.xml`; новых строк для этой задачи не требуется.
-- Проверка каждой задачи: `gradlew test assembleDebug`; финальный APK — `apk/CalorieDiary.apk`.
+- РџСЂРёР»РѕР¶РµРЅРёРµ РѕСЃС‚Р°С‘С‚СЃСЏ РѕС„Р»Р°Р№РЅ; СЃРµС‚СЊ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ С‚РѕР»СЊРєРѕ РїСЂРё РїРѕРґРіРѕС‚РѕРІРєРµ РґР°РЅРЅС‹С… РЅР° СЌС‚Р°РїРµ СЂР°Р·СЂР°Р±РѕС‚РєРё.
+- Р‘СЂРµРЅРґ РІС…РѕРґРёС‚ РІ `name`, РїРѕР»Рµ `brand` РЅРµ РґРѕР±Р°РІР»СЏРµС‚СЃСЏ; `name` СѓРЅРёРєР°Р»СЊРЅРѕ.
+- Р›СЋР±Р°СЏ РїРѕР·РёС†РёСЏ РёРјРµРµС‚ РІСЃРµ С‡РµС‚С‹СЂРµ С‡РёСЃР»Р°: `kcal`, `protein`, `fat`, `carbs`. Р§Р°СЃС‚РёС‡РЅС‹Рµ РґР°РЅРЅС‹Рµ Р·Р°РїСЂРµС‰РµРЅС‹.
+- РљР°Р¶РґР°СЏ РїРѕР·РёС†РёСЏ РёРјРµРµС‚ СЃС‚СЂРѕРєСѓ РІ СЂРµРµСЃС‚СЂРµ РёСЃС‚РѕС‡РЅРёРєРѕРІ СЃ РЅРµРїСѓСЃС‚С‹Рј URL.
+- Р’РµСЂСЃРёСЏ Р‘Р” РїРѕРґРЅРёРјР°РµС‚СЃСЏ СЃ 8 РґРѕ 9; СЃС…РµРјР° РЅРµ РјРµРЅСЏРµС‚СЃСЏ; СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёРµ СЃС‚СЂРѕРєРё РЅРµ РїРµСЂРµР·Р°РїРёСЃС‹РІР°СЋС‚СЃСЏ.
+- РќРѕРІС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРµ СЃС‚СЂРѕРєРё вЂ” РІ `strings.xml`; РЅРѕРІС‹С… СЃС‚СЂРѕРє РґР»СЏ СЌС‚РѕР№ Р·Р°РґР°С‡Рё РЅРµ С‚СЂРµР±СѓРµС‚СЃСЏ.
+- РџСЂРѕРІРµСЂРєР° РєР°Р¶РґРѕР№ Р·Р°РґР°С‡Рё: `gradlew test assembleDebug`; С„РёРЅР°Р»СЊРЅС‹Р№ APK вЂ” `apk/CalorieDiary.apk`.
 
 ## Review Focus
-- Позиция с неполными КБЖУ не попадает в базу — тест `belarusAssetHasCompleteNutrients` в Task 1.
-- Дубликаты имён не создаются — тест `belarusAssetNamesAreUnique` в Task 1.
-- У каждой позиции есть источник — тест `belarusProductsHaveSourceRows` в Task 1.
-- Пользователь с существующей БД версии 8 получает новые продукты после обновления — проверка кода в Task 2, реальный smoke на устройстве за пользователем (adb devices пусто).
-- Поиск по названию бренда работает без правок UI — шаг проверки в Task 3.
+- РџРѕР·РёС†РёСЏ СЃ РЅРµРїРѕР»РЅС‹РјРё РљР‘Р–РЈ РЅРµ РїРѕРїР°РґР°РµС‚ РІ Р±Р°Р·Сѓ вЂ” С‚РµСЃС‚ `belarusAssetHasCompleteNutrients` РІ Task 1.
+- Р”СѓР±Р»РёРєР°С‚С‹ РёРјС‘РЅ РЅРµ СЃРѕР·РґР°СЋС‚СЃСЏ вЂ” С‚РµСЃС‚ `belarusAssetNamesAreUnique` РІ Task 1.
+- РЈ РєР°Р¶РґРѕР№ РїРѕР·РёС†РёРё РµСЃС‚СЊ РёСЃС‚РѕС‡РЅРёРє вЂ” С‚РµСЃС‚ `belarusProductsHaveSourceRows` РІ Task 1.
+- РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РµР№ Р‘Р” РІРµСЂСЃРёРё 8 РїРѕР»СѓС‡Р°РµС‚ РЅРѕРІС‹Рµ РїСЂРѕРґСѓРєС‚С‹ РїРѕСЃР»Рµ РѕР±РЅРѕРІР»РµРЅРёСЏ вЂ” РїСЂРѕРІРµСЂРєР° РєРѕРґР° РІ Task 2, СЂРµР°Р»СЊРЅС‹Р№ smoke РЅР° СѓСЃС‚СЂРѕР№СЃС‚РІРµ Р·Р° РїРѕР»СЊР·РѕРІР°С‚РµР»РµРј (adb devices РїСѓСЃС‚Рѕ).
+- РџРѕРёСЃРє РїРѕ РЅР°Р·РІР°РЅРёСЋ Р±СЂРµРЅРґР° СЂР°Р±РѕС‚Р°РµС‚ Р±РµР· РїСЂР°РІРѕРє UI вЂ” С€Р°Рі РїСЂРѕРІРµСЂРєРё РІ Task 3.
 
 ---
 
-### Task 1: Данные и реестр источников
+### Task 1: Р”Р°РЅРЅС‹Рµ Рё СЂРµРµСЃС‚СЂ РёСЃС‚РѕС‡РЅРёРєРѕРІ
 
 **Files:**
 - Create: `app/src/main/assets/products_belarus.json`
@@ -36,11 +36,11 @@
 - Test: `app/src/test/java/com/veles/caloriediary/BelarusProductsTest.kt`
 
 **Interfaces:**
-- Produces: JSON-ассет; каждая строка — объект `{"name":"...","kcal":N,"protein":N,"fat":N,"carbs":N}` в одну строку файла, разделитель объектов `,`.
-- Produces: CSV с разделителем `|` и заголовком `name|brand|source_url|source_type|kcal|protein|fat|carbs|checked_on`; имена не содержат `|`.
-- Produces: тесты читают файлы по путям от каталога модуля `app`: `src/main/assets/products_belarus.json` и `../docs/data/belarusian-products.csv`.
+- Produces: JSON-Р°СЃСЃРµС‚; РєР°Р¶РґР°СЏ СЃС‚СЂРѕРєР° вЂ” РѕР±СЉРµРєС‚ `{"name":"...","kcal":N,"protein":N,"fat":N,"carbs":N}` РІ РѕРґРЅСѓ СЃС‚СЂРѕРєСѓ С„Р°Р№Р»Р°, СЂР°Р·РґРµР»РёС‚РµР»СЊ РѕР±СЉРµРєС‚РѕРІ `,`.
+- Produces: CSV СЃ СЂР°Р·РґРµР»РёС‚РµР»РµРј `|` Рё Р·Р°РіРѕР»РѕРІРєРѕРј `name|brand|source_url|source_type|kcal|protein|fat|carbs|checked_on`; РёРјРµРЅР° РЅРµ СЃРѕРґРµСЂР¶Р°С‚ `|`.
+- Produces: С‚РµСЃС‚С‹ С‡РёС‚Р°СЋС‚ С„Р°Р№Р»С‹ РїРѕ РїСѓС‚СЏРј РѕС‚ РєР°С‚Р°Р»РѕРіР° РјРѕРґСѓР»СЏ `app`: `src/main/assets/products_belarus.json` Рё `../docs/data/belarusian-products.csv`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```kotlin
 class BelarusProductsTest {
@@ -71,85 +71,85 @@ class BelarusProductsTest {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `gradlew :app:testDebugUnitTest --tests '*BelarusProductsTest' --no-daemon`
-Expected: FAIL — файлы не найдены.
+Expected: FAIL вЂ” С„Р°Р№Р»С‹ РЅРµ РЅР°Р№РґРµРЅС‹.
 
-- [ ] **Step 3: Collect data and create both files**
+- [x] **Step 3: Collect data and create both files**
 
-Собрать не менее 30 позиций из официального каталога `lncmilk.by` и открытых карточек/таблиц для брендов «Савушкин продукт», «Молочный мир», «Бабушкина крынка». Обязательные четыре подтверждённых значения уже найдены:
-- «Ряженка 3,2% Савушкин продукт» — 56,4 / 2,8 / 3,2 / 4,1, `https://proe.info/ru/food/ryazhenka-tm-savushkin-produkt-3-2`;
-- «Ряженка 4% Молочный мир» — 65 / 2,9 / 4 / 4,1, `https://health-diet.ru/base_of_food/sostav/293011.php`;
-- «Ряженка 3% Бабушкина крынка» — 54,6 / 3 / 2,8 / 4,1, `https://health-diet.ru/table_calorie_users/713909/`;
-- «Ряженка 4% Молочная капелька» — 60 / 2,9 / 4 / 4,1, `https://lncmilk.by/katalog/molochnaya-kapelka/ryazhenka-4/`.
+РЎРѕР±СЂР°С‚СЊ РЅРµ РјРµРЅРµРµ 30 РїРѕР·РёС†РёР№ РёР· РѕС„РёС†РёР°Р»СЊРЅРѕРіРѕ РєР°С‚Р°Р»РѕРіР° `lncmilk.by` Рё РѕС‚РєСЂС‹С‚С‹С… РєР°СЂС‚РѕС‡РµРє/С‚Р°Р±Р»РёС† РґР»СЏ Р±СЂРµРЅРґРѕРІ В«РЎР°РІСѓС€РєРёРЅ РїСЂРѕРґСѓРєС‚В», В«РњРѕР»РѕС‡РЅС‹Р№ РјРёСЂВ», В«Р‘Р°Р±СѓС€РєРёРЅР° РєСЂС‹РЅРєР°В». РћР±СЏР·Р°С‚РµР»СЊРЅС‹Рµ С‡РµС‚С‹СЂРµ РїРѕРґС‚РІРµСЂР¶РґС‘РЅРЅС‹С… Р·РЅР°С‡РµРЅРёСЏ СѓР¶Рµ РЅР°Р№РґРµРЅС‹:
+- В«Р СЏР¶РµРЅРєР° 3,2% РЎР°РІСѓС€РєРёРЅ РїСЂРѕРґСѓРєС‚В» вЂ” 56,4 / 2,8 / 3,2 / 4,1, `https://proe.info/ru/food/ryazhenka-tm-savushkin-produkt-3-2`;
+- В«Р СЏР¶РµРЅРєР° 4% РњРѕР»РѕС‡РЅС‹Р№ РјРёСЂВ» вЂ” 65 / 2,9 / 4 / 4,1, `https://health-diet.ru/base_of_food/sostav/293011.php`;
+- В«Р СЏР¶РµРЅРєР° 3% Р‘Р°Р±СѓС€РєРёРЅР° РєСЂС‹РЅРєР°В» вЂ” 54,6 / 3 / 2,8 / 4,1, `https://health-diet.ru/table_calorie_users/713909/`;
+- В«Р СЏР¶РµРЅРєР° 4% РњРѕР»РѕС‡РЅР°СЏ РєР°РїРµР»СЊРєР°В» вЂ” 60 / 2,9 / 4 / 4,1, `https://lncmilk.by/katalog/molochnaya-kapelka/ryazhenka-4/`.
 
-Приоритет источников по спецификации; при расхождении в реестр заносится выбранное значение и URL. Позиции без полного КБЖУ не добавлять.
+РџСЂРёРѕСЂРёС‚РµС‚ РёСЃС‚РѕС‡РЅРёРєРѕРІ РїРѕ СЃРїРµС†РёС„РёРєР°С†РёРё; РїСЂРё СЂР°СЃС…РѕР¶РґРµРЅРёРё РІ СЂРµРµСЃС‚СЂ Р·Р°РЅРѕСЃРёС‚СЃСЏ РІС‹Р±СЂР°РЅРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ Рё URL. РџРѕР·РёС†РёРё Р±РµР· РїРѕР»РЅРѕРіРѕ РљР‘Р–РЈ РЅРµ РґРѕР±Р°РІР»СЏС‚СЊ.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `gradlew :app:testDebugUnitTest --tests '*BelarusProductsTest' --no-daemon`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 `git add app/src/main/assets/products_belarus.json docs/data/belarusian-products.csv app/src/test/java/com/veles/caloriediary/BelarusProductsTest.kt && git commit -m "feat: add sourced belarusian dairy products"`
 
 ---
 
-### Task 2: Импорт ассета в базу
+### Task 2: РРјРїРѕСЂС‚ Р°СЃСЃРµС‚Р° РІ Р±Р°Р·Сѓ
 
 **Files:**
 - Modify: `app/src/main/java/com/veles/caloriediary/Db.kt`
 
 **Interfaces:**
-- Consumes: `app/src/main/assets/products_belarus.json` из Task 1.
-- Produces: `private fun importBelarusProducts(db: SQLiteDatabase)`; константа `DB_VERSION = 9`.
+- Consumes: `app/src/main/assets/products_belarus.json` РёР· Task 1.
+- Produces: `private fun importBelarusProducts(db: SQLiteDatabase)`; РєРѕРЅСЃС‚Р°РЅС‚Р° `DB_VERSION = 9`.
 
-- [ ] **Step 1: Add the asset name constant**
+- [x] **Step 1: Add the asset name constant**
 
-В companion object `Db` добавить `private const val ASSET_BELARUS = "products_belarus.json"` рядом с `ASSET_PRODUCTS`.
+Р’ companion object `Db` РґРѕР±Р°РІРёС‚СЊ `private const val ASSET_BELARUS = "products_belarus.json"` СЂСЏРґРѕРј СЃ `ASSET_PRODUCTS`.
 
-- [ ] **Step 2: Implement the import method**
+- [x] **Step 2: Implement the import method**
 
-Метод `importBelarusProducts(db: SQLiteDatabase)` повторяет структуру `importExtendedProducts(db)`: читает ассет как UTF-8, парсит `JSONArray`, готовит `INSERT OR IGNORE INTO products (name, search_name, kcal, protein, fat, carbs) VALUES (?, ?, ?, ?, ?, ?)`, связывает `name.lowercase()` в `search_name`, выполняет в транзакции.
+РњРµС‚РѕРґ `importBelarusProducts(db: SQLiteDatabase)` РїРѕРІС‚РѕСЂСЏРµС‚ СЃС‚СЂСѓРєС‚СѓСЂСѓ `importExtendedProducts(db)`: С‡РёС‚Р°РµС‚ Р°СЃСЃРµС‚ РєР°Рє UTF-8, РїР°СЂСЃРёС‚ `JSONArray`, РіРѕС‚РѕРІРёС‚ `INSERT OR IGNORE INTO products (name, search_name, kcal, protein, fat, carbs) VALUES (?, ?, ?, ?, ?, ?)`, СЃРІСЏР·С‹РІР°РµС‚ `name.lowercase()` РІ `search_name`, РІС‹РїРѕР»РЅСЏРµС‚ РІ С‚СЂР°РЅР·Р°РєС†РёРё.
 
-- [ ] **Step 3: Wire it into create and upgrade**
+- [x] **Step 3: Wire it into create and upgrade**
 
-В `onCreate` вызвать `importBelarusProducts(db)` после `importExtendedProducts(db)`. Поднять `DB_VERSION` до 9. В `onUpgrade` добавить `if (oldVersion < 9) { importBelarusProducts(db) }`. Никаких `ALTER TABLE` и переписывания существующих строк.
+Р’ `onCreate` РІС‹Р·РІР°С‚СЊ `importBelarusProducts(db)` РїРѕСЃР»Рµ `importExtendedProducts(db)`. РџРѕРґРЅСЏС‚СЊ `DB_VERSION` РґРѕ 9. Р’ `onUpgrade` РґРѕР±Р°РІРёС‚СЊ `if (oldVersion < 9) { importBelarusProducts(db) }`. РќРёРєР°РєРёС… `ALTER TABLE` Рё РїРµСЂРµРїРёСЃС‹РІР°РЅРёСЏ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёС… СЃС‚СЂРѕРє.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `gradlew test assembleDebug --no-daemon`
-Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные. Проверить по коду, что `importBelarusProducts(db)` вызывается и в `onCreate`, и в ветке `oldVersion < 9`, и что он не изменяет существующие строки. Подключённого устройства нет (`adb devices` пусто), поэтому фактическое обновление с версии 8 остаётся ручным smoke за пользователем.
+Expected: BUILD SUCCESSFUL, exit 0, РІСЃРµ С‚РµСЃС‚С‹ Р·РµР»С‘РЅС‹Рµ. РџСЂРѕРІРµСЂРёС‚СЊ РїРѕ РєРѕРґСѓ, С‡С‚Рѕ `importBelarusProducts(db)` РІС‹Р·С‹РІР°РµС‚СЃСЏ Рё РІ `onCreate`, Рё РІ РІРµС‚РєРµ `oldVersion < 9`, Рё С‡С‚Рѕ РѕРЅ РЅРµ РёР·РјРµРЅСЏРµС‚ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёРµ СЃС‚СЂРѕРєРё. РџРѕРґРєР»СЋС‡С‘РЅРЅРѕРіРѕ СѓСЃС‚СЂРѕР№СЃС‚РІР° РЅРµС‚ (`adb devices` РїСѓСЃС‚Рѕ), РїРѕСЌС‚РѕРјСѓ С„Р°РєС‚РёС‡РµСЃРєРѕРµ РѕР±РЅРѕРІР»РµРЅРёРµ СЃ РІРµСЂСЃРёРё 8 РѕСЃС‚Р°С‘С‚СЃСЏ СЂСѓС‡РЅС‹Рј smoke Р·Р° РїРѕР»СЊР·РѕРІР°С‚РµР»РµРј.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 `git commit -m "feat: import belarusian products on create and upgrade"`
 
 ---
 
-### Task 3: Финал
+### Task 3: Р¤РёРЅР°Р»
 
 **Files:**
 - Modify: `E:\OpenCodeModel\BACKLOG.md`, `BACKLOG-closed.md`, `CONTEXT.md`, `PLAN.md`
 
 **Interfaces:**
-- Consumes: результаты Task 1 и Task 2.
+- Consumes: СЂРµР·СѓР»СЊС‚Р°С‚С‹ Task 1 Рё Task 2.
 
-- [ ] **Step 1: Final verification and APK**
+- [x] **Step 1: Final verification and APK**
 
-Run: `gradlew test assembleDebug --no-daemon`, посчитать тесты, скопировать APK в `apk/CalorieDiary.apk`, зафиксировать размер и SHA256.
-Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные, APK совпадает со сборкой.
+Run: `gradlew test assembleDebug --no-daemon`, РїРѕСЃС‡РёС‚Р°С‚СЊ С‚РµСЃС‚С‹, СЃРєРѕРїРёСЂРѕРІР°С‚СЊ APK РІ `apk/CalorieDiary.apk`, Р·Р°С„РёРєСЃРёСЂРѕРІР°С‚СЊ СЂР°Р·РјРµСЂ Рё SHA256.
+Expected: BUILD SUCCESSFUL, exit 0, РІСЃРµ С‚РµСЃС‚С‹ Р·РµР»С‘РЅС‹Рµ, APK СЃРѕРІРїР°РґР°РµС‚ СЃРѕ СЃР±РѕСЂРєРѕР№.
 
-- [ ] **Step 2: Smoke checks**
+- [x] **Step 2: Smoke checks**
 
-Проверить поиск по «Савушкин», «Молочный мир», «Бабушкина крынка» и «Молочная капелька»; убедиться, что в подсказках видны брендовые названия и КБЖУ. Проверить, что после обновления с версии 8 старые данные на месте.
+РџСЂРѕРІРµСЂРёС‚СЊ РїРѕРёСЃРє РїРѕ В«РЎР°РІСѓС€РєРёРЅВ», В«РњРѕР»РѕС‡РЅС‹Р№ РјРёСЂВ», В«Р‘Р°Р±СѓС€РєРёРЅР° РєСЂС‹РЅРєР°В» Рё В«РњРѕР»РѕС‡РЅР°СЏ РєР°РїРµР»СЊРєР°В»; СѓР±РµРґРёС‚СЊСЃСЏ, С‡С‚Рѕ РІ РїРѕРґСЃРєР°Р·РєР°С… РІРёРґРЅС‹ Р±СЂРµРЅРґРѕРІС‹Рµ РЅР°Р·РІР°РЅРёСЏ Рё РљР‘Р–РЈ. РџСЂРѕРІРµСЂРёС‚СЊ, С‡С‚Рѕ РїРѕСЃР»Рµ РѕР±РЅРѕРІР»РµРЅРёСЏ СЃ РІРµСЂСЃРёРё 8 СЃС‚Р°СЂС‹Рµ РґР°РЅРЅС‹Рµ РЅР° РјРµСЃС‚Рµ.
 
-- [ ] **Step 3: Close the task**
+- [x] **Step 3: Close the task**
 
-Закрыть BL-097 в `BACKLOG.md`/`BACKLOG-closed.md` с доказательствами; добавить решение в `CONTEXT.md`, обновить `PLAN.md`, перегенерировать `context-digest.ps1`.
+Р—Р°РєСЂС‹С‚СЊ BL-097 РІ `BACKLOG.md`/`BACKLOG-closed.md` СЃ РґРѕРєР°Р·Р°С‚РµР»СЊСЃС‚РІР°РјРё; РґРѕР±Р°РІРёС‚СЊ СЂРµС€РµРЅРёРµ РІ `CONTEXT.md`, РѕР±РЅРѕРІРёС‚СЊ `PLAN.md`, РїРµСЂРµРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ `context-digest.ps1`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 `git commit -m "docs: close belarusian products task"`
