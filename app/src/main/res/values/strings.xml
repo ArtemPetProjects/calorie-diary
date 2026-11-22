@@ -52,4 +52,5 @@
     <string name="scheme_3">Низкоуглеводная 25/45/30</string>
     <string name="scheme_4">Кето 10/70/20</string>
     <string name="portion_preview">%1$s ккал • Б %2$s / Ж %3$s / У %4$s за порцию</string>
+    <string name="product_suggestion">%1$s • %2$s ккал / Б %3$s / Ж %4$s / У %5$s на 100 г</string>
 </resources>

@@ -187,14 +187,18 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
 
         val products = db.products()
         productInput.setAdapter(
-            ArrayAdapter(activity, android.R.layout.simple_dropdown_item_1line, products.map { it.name })
+            ArrayAdapter(
+                activity,
+                android.R.layout.simple_dropdown_item_1line,
+                products.map { ProductLabels.suggestion(activity, it) }
+            )
         )
 
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                val name = productInput.text.toString().trim()
+                val name = ProductLabels.nameOf(productInput.text.toString())
                 val product = products.firstOrNull { it.name.equals(name, ignoreCase = true) }
                 newFields.visibility =
                     if (name.isNotBlank() && product == null) View.VISIBLE else View.GONE
@@ -229,7 +233,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
 
         dialog.setOnShowListener {
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
-                val name = productInput.text.toString().trim()
+                val name = ProductLabels.nameOf(productInput.text.toString())
                 val grams = parseGrams(weightInput.text.toString())
                 if (name.isBlank() || grams == null) {
                     toast(activity.getString(R.string.enter_weight))

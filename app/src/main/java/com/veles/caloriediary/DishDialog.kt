@@ -27,7 +27,8 @@ class DishDialog(
 
     private val products = db.products()
     private val adapter = ArrayAdapter(
-        activity, android.R.layout.simple_dropdown_item_1line, products.map { it.name }
+        activity, android.R.layout.simple_dropdown_item_1line,
+        products.map { ProductLabels.suggestion(activity, it) }
     )
     private val content = LayoutInflater.from(activity).inflate(R.layout.dialog_dish, null)
     private val nameInput: EditText = content.findViewById(R.id.dishNameInput)
