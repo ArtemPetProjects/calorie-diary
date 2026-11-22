@@ -7,7 +7,13 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import org.json.JSONArray
 import java.io.BufferedReader
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.InputStreamReader
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION) {
 
@@ -53,7 +59,13 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         db.insert("targets", null, t)
     }
 
+    override fun onOpen(db: SQLiteDatabase) {
+        super.onOpen(db)
+        backupDatabase(db, "open")
+    }
+
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        backupDatabase(db, "upgrade")
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE products ADD COLUMN is_dish INTEGER NOT NULL DEFAULT 0")
             db.execSQL("ALTER TABLE products ADD COLUMN is_custom INTEGER NOT NULL DEFAULT 0")
@@ -93,6 +105,30 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             update.close()
             db.execSQL("CREATE INDEX IF NOT EXISTS idx_products_search ON products(search_name)")
         }
+    }
+
+    private fun backupDatabase(db: SQLiteDatabase, reason: String) {
+        val dir = File(appContext.filesDir, "backups")
+        if (!dir.exists()) dir.mkdirs()
+        val files = dir.listFiles { f -> f.name.startsWith("diary-") && f.name.endsWith(".db") }
+            ?: emptyArray()
+        val day = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
+        if (reason == "open" && files.any { it.name.contains("-$day-") }) return
+
+        val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.getDefault()).format(Date())
+        val dest = File(dir, "diary-$stamp-$reason.db")
+        try {
+            FileInputStream(db.path).use { input ->
+                FileOutputStream(dest).use { output -> input.copyTo(output) }
+            }
+        } catch (e: Exception) {
+            dest.delete()
+            return
+        }
+        val current = dir.listFiles { f -> f.name.startsWith("diary-") && f.name.endsWith(".db") }
+            ?: emptyArray()
+        val keep = BackupPolicy.keepLatest(current.map { it.name }, 3)
+        current.filter { it.name !in keep }.forEach { it.delete() }
     }
 
     private fun hasColumn(db: SQLiteDatabase, table: String, column: String): Boolean {
@@ -301,6 +337,14 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         return writableDatabase.insert("entries", null, values)
     }
 
+    fun updateEntry(id: Long, grams: Double, values: Nutrients): Int {
+        val v = ContentValues().apply {
+            put("grams", grams)
+            putNutrients(this, values)
+        }
+        return writableDatabase.update("entries", v, "_id = ?", arrayOf(id.toString()))
+    }
+
     fun deleteEntry(id: Long) {
         writableDatabase.delete("entries", "_id = ?", arrayOf(id.toString()))
     }
@@ -387,7 +431,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 5
+        private const val DB_VERSION = 6
         private const val ASSET_PRODUCTS = "products_extended.json"
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }
