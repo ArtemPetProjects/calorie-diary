@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Filter
 import android.widget.TextView
+import android.util.TypedValue
 import java.util.Locale
 
 data class Suggestion(val product: Product) {
@@ -16,7 +17,8 @@ data class Suggestion(val product: Product) {
 class SuggestionAdapter(
     activity: Activity,
     products: List<Product>,
-    private val recentIds: List<Long> = emptyList()
+    private val recentIds: List<Long> = emptyList(),
+    private val largerText: Boolean = false
 ) : ArrayAdapter<Suggestion>(activity, R.layout.item_suggestion, products.map { Suggestion(it) }) {
 
     private val all = products.map { Suggestion(it) }
@@ -30,8 +32,14 @@ class SuggestionAdapter(
             .inflate(R.layout.item_suggestion, parent, false)
         val item = getItem(position) ?: return row
         val n = item.product.per100
-        row.findViewById<TextView>(R.id.suggestionName).text = item.product.name
-        row.findViewById<TextView>(R.id.suggestionInfo).text = context.getString(
+        val nameView = row.findViewById<TextView>(R.id.suggestionName)
+        val infoView = row.findViewById<TextView>(R.id.suggestionInfo)
+        if (largerText) {
+            nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            infoView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+        }
+        nameView.text = item.product.name
+        infoView.text = context.getString(
             R.string.suggestion_info, fmt(n.kcal), fmt(n.protein), fmt(n.fat), fmt(n.carbs)
         )
         return row

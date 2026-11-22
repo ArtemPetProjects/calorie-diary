@@ -28,7 +28,7 @@ class DishDialog(
 ) {
 
     private val products = db.products()
-    private val adapter = SuggestionAdapter(activity, products, db.recentProductIds())
+    private val adapter = SuggestionAdapter(activity, products, db.recentProductIds(), largerText = true)
     private val content = LayoutInflater.from(activity).inflate(R.layout.dialog_dish, null)
     private val nameInput: EditText = content.findViewById(R.id.dishNameInput)
     private val ingredientList: LinearLayout = content.findViewById(R.id.ingredientList)
@@ -72,6 +72,7 @@ class DishDialog(
             .create()
 
         dialog.setOnShowListener {
+            dialog.focusAndShowKeyboard(nameInput, selectAll = dishId > 0)
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener { save(dialog) }
             dialog.getButton(Dialog.BUTTON_NEUTRAL).setOnClickListener {
                 val items = collectItems()
@@ -106,6 +107,10 @@ class DishDialog(
         init {
             adapter.showInitial()
             productInput.setAdapter(adapter)
+            productInput.post {
+                val width = productInput.width
+                if (width > 0) productInput.dropDownWidth = (width * 0.92f).toInt()
+            }
             val watcher = object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
