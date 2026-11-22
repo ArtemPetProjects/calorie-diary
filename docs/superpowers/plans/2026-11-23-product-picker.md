@@ -21,16 +21,16 @@
 - Использование продукта сохраняется при добавлении записи и блюда.
 
 ### Task 1: История использования
-- [ ] `DB_VERSION = 8`; `product_usage`; `markUsed`, `recentProductIds`.
-- [ ] Коммит `feat: track used products`.
+- [x] `DB_VERSION = 8`; `product_usage`; `markUsed`, `recentProductIds`.
+- [x] Коммит `feat: track used products`.
 
 ### Task 2: Ранжирование с недавними
-- [ ] `rankProductNamesWithRecent` + RED/GREEN тест; подключить в SuggestionAdapter.
-- [ ] Коммит `feat: prioritize recently used products`.
+- [x] `rankProductNamesWithRecent` + RED/GREEN тест; подключить в SuggestionAdapter.
+- [x] Коммит `feat: prioritize recently used products`.
 
 ### Task 3: Диалог и список
-- [ ] Gravity.TOP, match parent, SOFT_INPUT_STATE_VISIBLE, requestFocus, showDropDown, dropDownHeight.
-- [ ] Коммит `feat: open product picker immediately`.
+- [x] Gravity.TOP, match parent, SOFT_INPUT_STATE_VISIBLE, requestFocus, showDropDown, dropDownHeight.
+- [x] Коммит `feat: open product picker immediately`.
 
 ### Task 4: Финал
-- [ ] `gradlew test assembleDebug`, APK, закрыть BL-083–BL-086, документы.
+- [x] `gradlew test assembleDebug`, APK, закрыть BL-083–BL-086, документы.
