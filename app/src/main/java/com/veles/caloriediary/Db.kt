@@ -30,12 +30,10 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     fun schemeForProfile(): String {
         val key = "${KEY_SCHEME_PREFIX}${activeProfileId()}"
-        val string = prefs().getString(key, null)
-        if (string != null) return string
-        val old = prefs().getInt(key, -1)
-        return when {
-            old <= 0 -> SCHEME_OWN
-            else -> "builtin:$old"
+        return when (val value = prefs().all[key]) {
+            is String -> value
+            is Int -> if (value <= 0) SCHEME_OWN else "builtin:$value"
+            else -> SCHEME_OWN
         }
     }
 
