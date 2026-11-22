@@ -104,6 +104,17 @@ class CalculationTest {
     }
 
     @Test
+    fun groupByMealHandlesLegacyZeroTimestamp() {
+        fun entry(id: Long, at: Long) = Entry(
+            id, "2026-11-22", 1, "Продукт", 100.0, Nutrients(10.0, 1.0, 1.0, 1.0), at
+        )
+        val groups = groupByMeal(listOf(entry(1, 1_000L), entry(2, 0L)))
+        assertEquals(1, groups.size)
+        assertEquals(0L, groups[0].startMs)
+        assertEquals(2, groups[0].entries.size)
+    }
+
+    @Test
     fun weekDatesCrossesMonthAndLeapDay() {
         assertEquals(
             listOf(

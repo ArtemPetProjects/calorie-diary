@@ -210,7 +210,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                 preview.text = if (product != null && grams != null) {
                     val n = forWeight(product.per100, grams)
                     activity.getString(
-                        R.string.dish_preview, fmt(n.kcal), fmt(n.protein), fmt(n.fat), fmt(n.carbs)
+                        R.string.portion_preview, fmt(n.kcal), fmt(n.protein), fmt(n.fat), fmt(n.carbs)
                     )
                 } else {
                     ""

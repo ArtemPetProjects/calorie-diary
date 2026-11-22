@@ -21,7 +21,8 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
                 "kcal REAL, protein REAL, fat REAL, carbs REAL, " +
                 "is_dish INTEGER NOT NULL DEFAULT 0, " +
                 "is_custom INTEGER NOT NULL DEFAULT 0, " +
-                "final_grams REAL NOT NULL DEFAULT 0)"
+                "final_grams REAL NOT NULL DEFAULT 0, " +
+                "search_name TEXT NOT NULL DEFAULT '')"
         )
         db.execSQL(
             "CREATE TABLE entries (" +
@@ -30,6 +31,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
                 "product_id INTEGER, " +
                 "product_name TEXT, " +
                 "grams REAL, " +
+                "created_at INTEGER NOT NULL DEFAULT 0, " +
                 "kcal REAL, protein REAL, fat REAL, carbs REAL)"
         )
         db.execSQL(
@@ -43,6 +45,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             db.insertWithOnConflict("products", null, productValues(p), SQLiteDatabase.CONFLICT_IGNORE)
         }
         importExtendedProducts(db)
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_products_search ON products(search_name)")
         val t = ContentValues().apply {
             put("_id", 1L)
             putNutrients(this, DEFAULT_TARGETS)
@@ -70,8 +73,40 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             )
         }
         if (oldVersion < 3) {
-            db.execSQL("ALTER TABLE entries ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0")
             importExtendedProducts(db)
+        }
+        if (oldVersion < 4 && !hasColumn(db, "entries", "created_at")) {
+            db.execSQL("ALTER TABLE entries ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0")
+        }
+        if (oldVersion < 5 && !hasColumn(db, "products", "search_name")) {
+            db.execSQL("ALTER TABLE products ADD COLUMN search_name TEXT NOT NULL DEFAULT ''")
+            val cursor = db.rawQuery("SELECT _id, name FROM products", null)
+            val update = db.compileStatement("UPDATE products SET search_name = ? WHERE _id = ?")
+            cursor.use { c ->
+                while (c.moveToNext()) {
+                    update.bindString(1, c.getString(1).lowercase())
+                    update.bindLong(2, c.getLong(0))
+                    update.executeUpdateDelete()
+                    update.clearBindings()
+                }
+            }
+            update.close()
+            db.execSQL("CREATE INDEX IF NOT EXISTS idx_products_search ON products(search_name)")
+        }
+    }
+
+    private fun hasColumn(db: SQLiteDatabase, table: String, column: String): Boolean {
+        val cursor = db.rawQuery("PRAGMA table_info($table)", null)
+        return cursor.use { c ->
+            val index = c.getColumnIndexOrThrow("name")
+            var found = false
+            while (c.moveToNext()) {
+                if (c.getString(index) == column) {
+                    found = true
+                    break
+                }
+            }
+            found
         }
     }
 
@@ -79,22 +114,28 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         val stream = appContext.assets.open(ASSET_PRODUCTS)
         val text = BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).use { it.readText() }
         val array = JSONArray(text)
+        val statement = db.compileStatement(
+            "INSERT OR IGNORE INTO products (name, search_name, kcal, protein, fat, carbs) " +
+                "VALUES (?, ?, ?, ?, ?, ?)"
+        )
         db.beginTransaction()
         try {
             for (i in 0 until array.length()) {
                 val item = array.getJSONObject(i)
-                val values = ContentValues().apply {
-                    put("name", item.getString("name"))
-                    put("kcal", item.getDouble("kcal"))
-                    put("protein", item.getDouble("protein"))
-                    put("fat", item.getDouble("fat"))
-                    put("carbs", item.getDouble("carbs"))
-                }
-                db.insertWithOnConflict("products", null, values, SQLiteDatabase.CONFLICT_IGNORE)
+                val name = item.getString("name")
+                statement.bindString(1, name)
+                statement.bindString(2, name.lowercase())
+                statement.bindDouble(3, item.getDouble("kcal"))
+                statement.bindDouble(4, item.getDouble("protein"))
+                statement.bindDouble(5, item.getDouble("fat"))
+                statement.bindDouble(6, item.getDouble("carbs"))
+                statement.executeInsert()
+                statement.clearBindings()
             }
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()
+            statement.close()
         }
     }
 
@@ -121,15 +162,20 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             conditions.add("is_dish = 0")
         }
         if (onlyDishes) conditions.add("is_dish = 1")
-        val where = if (conditions.isEmpty()) null else conditions.joinToString(" AND ")
-        val cursor = readableDatabase.query("products", null, where, null, null, null, "name")
+        var selection: String? = null
+        var args: Array<String>? = null
+        if (query.isNotBlank()) {
+            conditions.add("search_name LIKE ?")
+            selection = conditions.joinToString(" AND ")
+            args = arrayOf("%${query.lowercase()}%")
+        } else if (conditions.isNotEmpty()) {
+            selection = conditions.joinToString(" AND ")
+        }
+        val cursor = readableDatabase.query("products", null, selection, args, null, null, "name")
         return cursor.use { c ->
             val result = mutableListOf<Product>()
             while (c.moveToNext()) {
-                val product = c.toProduct()
-                if (query.isBlank() || product.name.contains(query, ignoreCase = true)) {
-                    result.add(product)
-                }
+                result.add(c.toProduct())
             }
             result
         }
@@ -289,6 +335,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     private fun productValues(p: Product) = ContentValues().apply {
         put("name", p.name)
+        put("search_name", p.name.lowercase())
         putNutrients(this, p.per100)
         put("is_dish", if (p.isDish) 1 else 0)
         put("is_custom", if (p.isCustom) 1 else 0)
@@ -340,7 +387,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 3
+        private const val DB_VERSION = 5
         private const val ASSET_PRODUCTS = "products_extended.json"
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }
