@@ -156,7 +156,10 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             inputType = android.text.InputType.TYPE_CLASS_NUMBER or
                 android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
             hint = activity.getString(R.string.weight_dialog)
-            db.weightFor(selectedDate)?.let { setText(fmt(it)) }
+            db.weightFor(selectedDate)?.let {
+                setText(fmt(it))
+                setSelection(text.length)
+            }
         }
         val dialog = android.app.AlertDialog.Builder(activity)
             .setTitle(R.string.weight_dialog)
@@ -166,12 +169,21 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             .create()
         dialog.setOnShowListener {
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
-                val kg = parseGrams(input.text.toString())
+                val raw = input.text.toString().trim()
+                if (raw.isEmpty()) {
+                    db.deleteWeight(selectedDate)
+                    dialog.dismiss()
+                    refresh()
+                    return@setOnClickListener
+                }
+                val kg = parseGrams(raw)
                 if (kg == null || kg > 500.0) {
                     Toast.makeText(activity, R.string.enter_weight, Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
                 db.saveWeight(selectedDate, kg)
+                activity.getSharedPreferences(MainActivity.PREFS, Activity.MODE_PRIVATE)
+                    .edit().putFloat(ProfileView.KEY_WEIGHT, kg.toFloat()).apply()
                 dialog.dismiss()
                 refresh()
             }

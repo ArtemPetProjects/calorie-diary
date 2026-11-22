@@ -57,8 +57,8 @@
     <string name="my_scheme">Моя схема по весу</string>
     <string name="weight_mismatch">Вес и калории несовместимы</string>
     <string name="suggestion_info">%1$s ккал / Б %2$s / Ж %3$s / У %4$s на 100 г</string>
-    <string name="weight_today">Вес сегодня: %1$s кг</string>
+    <string name="weight_today">Вес: %1$s кг</string>
     <string name="edit_weight">Изменить вес порции</string>
-    <string name="weight_unknown">Вес сегодня: назначить</string>
+    <string name="weight_unknown">Вес: назначить</string>
     <string name="weight_dialog">Вес на выбранную дату, кг</string>
 </resources>

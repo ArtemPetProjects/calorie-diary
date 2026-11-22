@@ -91,9 +91,6 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         if (oldVersion < 4 && !hasColumn(db, "entries", "created_at")) {
             db.execSQL("ALTER TABLE entries ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0")
         }
-        if (oldVersion < 6) {
-            db.execSQL("CREATE TABLE IF NOT EXISTS weights (date TEXT PRIMARY KEY, kg REAL NOT NULL)")
-        }
         if (oldVersion < 5 && !hasColumn(db, "products", "search_name")) {
             db.execSQL("ALTER TABLE products ADD COLUMN search_name TEXT NOT NULL DEFAULT ''")
             val cursor = db.rawQuery("SELECT _id, name FROM products", null)
@@ -108,6 +105,9 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             }
             update.close()
             db.execSQL("CREATE INDEX IF NOT EXISTS idx_products_search ON products(search_name)")
+        }
+        if (oldVersion < 6) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS weights (date TEXT PRIMARY KEY, kg REAL NOT NULL)")
         }
     }
 
@@ -401,6 +401,10 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         return writableDatabase.insertWithOnConflict(
             "weights", null, values, SQLiteDatabase.CONFLICT_REPLACE
         )
+    }
+
+    fun deleteWeight(date: String) {
+        writableDatabase.delete("weights", "date = ?", arrayOf(date))
     }
 
     private fun productValues(p: Product) = ContentValues().apply {

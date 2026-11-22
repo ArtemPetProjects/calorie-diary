@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import java.util.Calendar
 import java.util.Locale
 
 class ProfileView(private val activity: Activity) {
@@ -108,6 +109,14 @@ class ProfileView(private val activity: Activity) {
                 return@setOnClickListener
             }
             db.saveTargets(Targets(kcal, p, f, c))
+            readNumber(weightInput)?.let { weight ->
+                val now = Calendar.getInstance()
+                val today = dateKey(
+                    now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1,
+                    now.get(Calendar.DAY_OF_MONTH)
+                )
+                db.saveWeight(today, weight)
+            }
             Toast.makeText(activity, R.string.targets_saved, Toast.LENGTH_SHORT).show()
         }
     }
