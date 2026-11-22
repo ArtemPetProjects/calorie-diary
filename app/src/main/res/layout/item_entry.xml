@@ -6,7 +6,7 @@
     android:gravity="center_vertical"
     android:paddingVertical="4dp"
     android:layout_marginVertical="2dp"
-    android:background="@drawable/row_card">
+    android:background="@drawable/meal_item_bg">
 
     <LinearLayout
         android:layout_width="0dp"

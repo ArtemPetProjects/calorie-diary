@@ -147,6 +147,11 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             header.text = (if (collapsed) "▶ " else "▼ ") + baseText
             header.textSize = 17f
             header.setTypeface(null, android.graphics.Typeface.BOLD)
+            header.background = activity.getDrawable(R.drawable.meal_header_bg)
+            header.setPadding(10, 8, 10, 8)
+            val headerTa = activity.obtainStyledAttributes(intArrayOf(R.attr.progressKcal))
+            header.setTextColor(headerTa.getColor(0, Color.parseColor("#EF6C00")))
+            headerTa.recycle()
             val items = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
             items.visibility = if (collapsed) View.GONE else View.VISIBLE
             header.setOnClickListener {
@@ -343,13 +348,11 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         productInput.setAdapter(adapter)
         productInput.threshold = 0
         productInput.post {
-            val width = productInput.width
-            if (width > 0) {
-                val inset = TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, 20f, activity.resources.displayMetrics
-                ).toInt()
-                productInput.dropDownWidth = (width - inset).coerceAtLeast(width / 2)
-            }
+            val edge = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 2f, activity.resources.displayMetrics
+            ).toInt()
+            productInput.dropDownWidth =
+                (activity.resources.displayMetrics.widthPixels - 2 * edge).coerceAtLeast(1)
         }
         val maxDrop = (activity.resources.displayMetrics.heightPixels * 0.5f).toInt()
         productInput.dropDownHeight = minOf((480f * activity.resources.displayMetrics.density).toInt(), maxDrop)
@@ -422,8 +425,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             WindowManager.LayoutParams.WRAP_CONTENT
         )
         dialog.setOnShowListener {
-            dialog.focusAndShowKeyboard(productInput)
-            productInput.post { productInput.showDropDown() }
+            dialog.focusAndShowKeyboard(productInput, showDropdown = true)
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
                 val name = ProductLabels.nameOf(productInput.text.toString())
                 val grams = parseGrams(weightInput.text.toString())

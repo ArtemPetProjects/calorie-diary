@@ -11,4 +11,6 @@
     <color name="block_day">@color/block_day_dark</color>
     <color name="block_products">@color/block_products_dark</color>
     <color name="block_profile">@color/block_profile_dark</color>
+    <color name="meal_header_bg">@color/meal_header_bg_dark</color>
+    <color name="meal_item_bg">@color/meal_item_bg_dark</color>
 </resources>

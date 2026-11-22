@@ -59,6 +59,17 @@ class ProfileView(private val activity: Activity) {
         updating = true
         profileSpinner.setSelection(activeIndex)
         updating = false
+
+        val purposes = activity.resources.getStringArray(R.array.scheme_purposes)
+        val schemeLabels = MACRO_SCHEMES.mapIndexed { index, scheme ->
+            activity.getString(
+                R.string.scheme_label,
+                scheme.name, scheme.proteinPct, scheme.fatPct, scheme.carbsPct, purposes[index]
+            )
+        }
+        schemeSpinner.adapter = ArrayAdapter(
+            activity, android.R.layout.simple_spinner_dropdown_item, schemeLabels
+        )
         profileSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {}

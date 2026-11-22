@@ -63,6 +63,19 @@
         <item>Низкоуглеводная</item>
         <item>Кето</item>
     </string-array>
+    <string name="scheme_label">%1$s · Б%2$d/Ж%3$d/У%4$d — %5$s</string>
+    <string-array name="scheme_purposes">
+        <item>базовый сбалансированный рацион по ВОЗ</item>
+        <item>середины рекомендуемых диапазонов IOM</item>
+        <item>контроль артериального давления</item>
+        <item>здоровье сердца и сосудов</item>
+        <item>гормональный баланс</item>
+        <item>снижение веса за счёт углеводов</item>
+        <item>снижение доли жиров</item>
+        <item>набор мышц и сытость</item>
+        <item>умеренное снижение углеводов</item>
+        <item>вхождение в кетоз</item>
+    </string-array>
     <string name="portion_preview">%1$s ккал • Б %2$s / Ж %3$s / У %4$s за порцию</string>
     <string name="product_suggestion">%1$s • %2$s ккал / Б %3$s / Ж %4$s / У %5$s на 100 г</string>
     <string name="body_weight">Вес тела, кг</string>
