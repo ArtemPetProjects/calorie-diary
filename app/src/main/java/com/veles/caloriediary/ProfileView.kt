@@ -27,10 +27,8 @@ class ProfileView(private val activity: Activity) {
     private val fatInput: EditText = view.findViewById(R.id.targetFatInput)
     private val carbsInput: EditText = view.findViewById(R.id.targetCarbsInput)
     private val weightInput: EditText = view.findViewById(R.id.weightInput)
-    private val schemeHint: TextView = view.findViewById(R.id.schemeHint)
-    private val schemeSpinner: Spinner = view.findViewById(R.id.schemeSpinner)
+    private val chooseSchemeButton: Button = view.findViewById(R.id.chooseSchemeButton)
     private var updating = false
-    private var schemeUpdating = false
     private val profileSpinner: Spinner = view.findViewById(R.id.profileSpinner)
     private var profiles = db.profiles()
 
@@ -62,29 +60,7 @@ class ProfileView(private val activity: Activity) {
         profileSpinner.setSelection(activeIndex)
         updating = false
 
-        val purposes = activity.resources.getStringArray(R.array.scheme_purposes)
-        val schemeOptions = mutableListOf(
-            SchemeOption(
-                activity.getString(R.string.scheme_own_title),
-                activity.getString(R.string.scheme_own_details)
-            )
-        )
-        MACRO_SCHEMES.forEachIndexed { index, scheme ->
-            schemeOptions.add(
-                SchemeOption(
-                    activity.getString(R.string.scheme_title, scheme.name, purposes.getOrElse(index) { "" }),
-                    activity.getString(
-                        R.string.scheme_details, scheme.proteinPct, scheme.fatPct, scheme.carbsPct
-                    )
-                )
-            )
-        }
-        schemeSpinner.adapter = SchemeAdapter(activity, schemeOptions)
-        val savedScheme = db.schemeForProfile()
-        val schemeSelection = if (savedScheme in MACRO_SCHEMES.indices) savedScheme + 1 else 0
-        schemeUpdating = true
-        schemeSpinner.setSelection(schemeSelection)
-        schemeSpinner.post { schemeUpdating = false }
+        updateSchemeButton()
         profileSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -126,10 +102,6 @@ class ProfileView(private val activity: Activity) {
         fatInput.setText(if (targets.fat > 0) fmt(targets.fat) else "")
         carbsInput.setText(if (targets.carbs > 0) fmt(targets.carbs) else "")
         updating = false
-        val schemesVisible = targets.kcal > 0
-        schemeHint.visibility = if (schemesVisible) View.VISIBLE else View.GONE
-        schemeSpinner.visibility = if (schemesVisible) View.VISIBLE else View.GONE
-
         listOf(proteinInput, fatInput, carbsInput).forEach { input ->
             input.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -137,102 +109,66 @@ class ProfileView(private val activity: Activity) {
                 override fun afterTextChanged(s: Editable?) = recalcCalories()
             })
         }
-        kcalInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                if (updating) return
-                val visible = readNumber(kcalInput) != null
-                schemeHint.visibility = if (visible) View.VISIBLE else View.GONE
-                schemeSpinner.visibility = if (visible) View.VISIBLE else View.GONE
-            }
-        })
-        schemeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (schemeUpdating || updating) return
-                if (position == 0) {
-                    db.saveScheme(0)
-                    val weight = readNumber(weightInput)
-                    val kcal = readNumber(kcalInput)
-                    if (weight == null || kcal == null) {
-                        Toast.makeText(activity, R.string.fill_targets, Toast.LENGTH_SHORT).show()
-                        return
-                    }
-                    val targets = weightScheme(weight, kcal)
-                    if (targets == null) {
-                        Toast.makeText(activity, R.string.weight_mismatch, Toast.LENGTH_SHORT).show()
-                        return
-                    }
-                    updating = true
-                    kcalInput.setText(fmt(targets.kcal))
-                    proteinInput.setText(fmt(targets.protein))
-                    fatInput.setText(fmt(targets.fat))
-                    carbsInput.setText(fmt(targets.carbs))
-                    updating = false
-                    db.saveBodyWeight(weight)
-                    db.saveTargets(targets)
-                    return
-                }
-                val schemeIndex = position - 1
-                if (schemeIndex !in MACRO_SCHEMES.indices || readNumber(kcalInput) == null) return
-                db.saveScheme(schemeIndex)
-                try {
-                    applyScheme(schemeIndex)
-                } catch (e: Exception) {
-                    Toast.makeText(activity, R.string.scheme_error, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
+        chooseSchemeButton.setOnClickListener { showSchemeDialog() }
 
         val prefs = activity.getSharedPreferences(MainActivity.PREFS, Activity.MODE_PRIVATE)
+        val profileId = db.activeProfileId()
         val darkSwitch = view.findViewById<Switch>(R.id.darkThemeSwitch)
-        darkSwitch.isChecked = prefs.getBoolean(MainActivity.KEY_DARK, false)
+        darkSwitch.isChecked = prefs.getBoolean(
+            MainActivity.themeKey(profileId), prefs.getBoolean(MainActivity.KEY_DARK, false)
+        )
         darkSwitch.setOnCheckedChangeListener { _, checked ->
-            prefs.edit().putBoolean(MainActivity.KEY_DARK, checked).apply()
+            prefs.edit().putBoolean(MainActivity.themeKey(profileId), checked).apply()
             activity.recreate()
         }
 
         val fontValue = view.findViewById<TextView>(R.id.fontValue)
-        var fontDelta = prefs.getInt(MainActivity.KEY_FONT_DELTA, 1).coerceIn(-5, 5)
+        var fontDelta = prefs.getInt(
+            MainActivity.fontKey(profileId), prefs.getInt(MainActivity.KEY_FONT_DELTA, 1)
+        ).coerceIn(-5, 5)
         fontValue.text = activity.getString(R.string.font_value, fontDelta)
         view.findViewById<Button>(R.id.fontMinusButton).setOnClickListener {
             fontDelta = (fontDelta - 1).coerceIn(-5, 5)
-            prefs.edit().putInt(MainActivity.KEY_FONT_DELTA, fontDelta).apply()
+            prefs.edit().putInt(MainActivity.fontKey(profileId), fontDelta).apply()
             activity.recreate()
         }
         view.findViewById<Button>(R.id.fontPlusButton).setOnClickListener {
             fontDelta = (fontDelta + 1).coerceIn(-5, 5)
-            prefs.edit().putInt(MainActivity.KEY_FONT_DELTA, fontDelta).apply()
+            prefs.edit().putInt(MainActivity.fontKey(profileId), fontDelta).apply()
             activity.recreate()
         }
 
         val savedWeight = db.bodyWeight()
         if (savedWeight > 0.0) weightInput.setText(fmt(savedWeight))
 
-        view.findViewById<Button>(R.id.saveTargetsButton).setOnClickListener {
-            val p = readNumber(proteinInput)
-            val f = readNumber(fatInput)
-            val c = readNumber(carbsInput)
-            var kcal = readNumber(kcalInput)
-            if (kcal == null && p != null && f != null && c != null) {
-                kcal = kcalFromMacros(p, f, c)
+        var pendingSave: Runnable? = null
+        val autosaveWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (updating) return
+                pendingSave?.let { view.removeCallbacks(it) }
+                pendingSave = Runnable {
+                    val p = readNumber(proteinInput) ?: return@Runnable
+                    val f = readNumber(fatInput) ?: return@Runnable
+                    val c = readNumber(carbsInput) ?: return@Runnable
+                    val kcal = readNumber(kcalInput) ?: kcalFromMacros(p, f, c)
+                    db.saveTargets(Targets(kcal, p, f, c))
+                    readNumber(weightInput)?.let { weight ->
+                        db.saveBodyWeight(weight)
+                        val now = Calendar.getInstance()
+                        val today = dateKey(
+                            now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1,
+                            now.get(Calendar.DAY_OF_MONTH)
+                        )
+                        db.saveWeight(today, weight)
+                    }
+                }
+                view.postDelayed(pendingSave, 600)
             }
-            if (kcal == null || p == null || f == null || c == null) {
-                Toast.makeText(activity, R.string.fill_targets, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            db.saveTargets(Targets(kcal, p, f, c))
-            readNumber(weightInput)?.let { weight ->
-                val now = Calendar.getInstance()
-                val today = dateKey(
-                    now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1,
-                    now.get(Calendar.DAY_OF_MONTH)
-                )
-                db.saveWeight(today, weight)
-            }
-            Toast.makeText(activity, R.string.targets_saved, Toast.LENGTH_SHORT).show()
         }
+        listOf(kcalInput, proteinInput, fatInput, carbsInput, weightInput)
+            .forEach { it.addTextChangedListener(autosaveWatcher) }
     }
 
     private fun recalcCalories() {
@@ -268,21 +204,157 @@ class ProfileView(private val activity: Activity) {
         return if (value > 0.0) value else null
     }
 
-    private class SchemeAdapter(
-        activity: Activity,
-        private val options: List<SchemeOption>
-    ) : ArrayAdapter<SchemeOption>(activity, R.layout.item_scheme, options) {
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val row = convertView ?: LayoutInflater.from(context)
-                .inflate(R.layout.item_scheme, parent, false)
-            val option = getItem(position) ?: return row
-            row.findViewById<TextView>(R.id.schemeTitle).text = option.title
-            row.findViewById<TextView>(R.id.schemeDetails).text = option.details
-            return row
+    private fun schemeEntries(): List<SchemeEntry> {
+        val purposes = activity.resources.getStringArray(R.array.scheme_purposes)
+        val entries = mutableListOf(
+            SchemeEntry(
+                Db.SCHEME_OWN,
+                activity.getString(R.string.scheme_own_title),
+                activity.getString(R.string.scheme_own_details)
+            )
+        )
+        MACRO_SCHEMES.forEachIndexed { index, scheme ->
+            entries.add(
+                SchemeEntry(
+                    "builtin:$index",
+                    activity.getString(
+                        R.string.scheme_title, scheme.name, purposes.getOrElse(index) { "" }
+                    ),
+                    activity.getString(
+                        R.string.scheme_details, scheme.proteinPct, scheme.fatPct, scheme.carbsPct
+                    )
+                )
+            )
         }
+        db.customSchemes().forEach { scheme ->
+            entries.add(
+                SchemeEntry(
+                    "custom:${scheme.id}",
+                    scheme.name,
+                    scheme.purpose.ifBlank { "Б ${scheme.proteinPct}% / Ж ${scheme.fatPct}% / У ${scheme.carbsPct}%" }
+                )
+            )
+        }
+        return entries
+    }
 
-        override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View =
-            getView(position, convertView, parent)
+    private fun updateSchemeButton() {
+        val current = db.schemeForProfile()
+        val title = schemeEntries().firstOrNull { it.key == current }?.title
+            ?: activity.getString(R.string.scheme_own_title)
+        chooseSchemeButton.text = activity.getString(R.string.scheme_current, title)
+    }
+
+    private fun applyTargets(targets: Targets) {
+        updating = true
+        kcalInput.setText(fmt(targets.kcal))
+        proteinInput.setText(fmt(targets.protein))
+        fatInput.setText(fmt(targets.fat))
+        carbsInput.setText(fmt(targets.carbs))
+        updating = false
+        db.saveTargets(targets)
+    }
+
+    private fun applySchemeEntry(entry: SchemeEntry) {
+        try {
+            when {
+                entry.key == Db.SCHEME_OWN -> {
+                    val weight = readNumber(weightInput)
+                    val kcal = readNumber(kcalInput)
+                    if (weight == null || kcal == null) {
+                        Toast.makeText(activity, R.string.fill_targets, Toast.LENGTH_SHORT).show()
+                        return
+                    }
+                    val targets = weightScheme(weight, kcal)
+                    if (targets == null) {
+                        Toast.makeText(activity, R.string.weight_mismatch, Toast.LENGTH_SHORT).show()
+                        return
+                    }
+                    db.saveBodyWeight(weight)
+                    applyTargets(targets)
+                }
+                entry.key.startsWith("builtin:") -> {
+                    val index = entry.key.removePrefix("builtin:").toIntOrNull() ?: return
+                    if (index in MACRO_SCHEMES.indices) applyScheme(index)
+                }
+                entry.key.startsWith("custom:") -> {
+                    val id = entry.key.removePrefix("custom:").toLongOrNull() ?: return
+                    val scheme = db.customSchemes().firstOrNull { it.id == id } ?: return
+                    val kcal = readNumber(kcalInput) ?: return
+                    applyTargets(
+                        gramsFromScheme(
+                            kcal,
+                            MacroScheme(scheme.name, scheme.proteinPct, scheme.fatPct, scheme.carbsPct)
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Toast.makeText(activity, R.string.scheme_error, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showSchemeDialog() {
+        val entries = schemeEntries()
+        val labels = entries.map { it.title }.toMutableList()
+        labels.add(activity.getString(R.string.add_custom_scheme))
+        val current = db.schemeForProfile()
+        val checked = entries.indexOfFirst { it.key == current }.coerceAtLeast(0)
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.choose_scheme)
+            .setSingleChoiceItems(labels.toTypedArray(), checked) { dialog, which ->
+                dialog.dismiss()
+                if (which == entries.size) {
+                    showCreateSchemeDialog()
+                    return@setSingleChoiceItems
+                }
+                val entry = entries[which]
+                db.saveScheme(entry.key)
+                applySchemeEntry(entry)
+                updateSchemeButton()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun showCreateSchemeDialog() {
+        val view = LayoutInflater.from(activity).inflate(R.layout.dialog_custom_scheme, null)
+        val nameField = view.findViewById<EditText>(R.id.customSchemeName)
+        val purposeField = view.findViewById<EditText>(R.id.customSchemePurpose)
+        val proteinField = view.findViewById<EditText>(R.id.customSchemeProtein)
+        val fatField = view.findViewById<EditText>(R.id.customSchemeFat)
+        val carbsField = view.findViewById<EditText>(R.id.customSchemeCarbs)
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.add_custom_scheme)
+            .setView(view)
+            .setPositiveButton(R.string.save, null)
+            .setNegativeButton(R.string.cancel, null)
+            .create()
+            .apply {
+                prepareForKeyboard()
+                setOnShowListener {
+                    focusAndShowKeyboard(nameField)
+                    getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                        val name = nameField.text.toString().trim()
+                        val p = proteinField.text.toString().trim().toIntOrNull()
+                        val f = fatField.text.toString().trim().toIntOrNull()
+                        val c = carbsField.text.toString().trim().toIntOrNull()
+                        if (name.isBlank() || p == null || f == null || c == null || p + f + c != 100) {
+                            Toast.makeText(activity, R.string.invalid_scheme_percent, Toast.LENGTH_SHORT).show()
+                            return@setOnClickListener
+                        }
+                        val id = db.addCustomScheme(name, purposeField.text.toString().trim(), p, f, c)
+                        if (id > 0) {
+                            val key = "custom:$id"
+                            db.saveScheme(key)
+                            applySchemeEntry(SchemeEntry(key, name, ""))
+                            updateSchemeButton()
+                            dismiss()
+                        }
+                    }
+                }
+                show()
+            }
     }
 
     companion object {

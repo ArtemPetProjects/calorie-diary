@@ -32,6 +32,17 @@ data class Profile(val id: Long, val name: String, val bodyKg: Double)
 
 data class SchemeOption(val title: String, val details: String)
 
+data class SchemeEntry(val key: String, val title: String, val details: String)
+
+data class CustomScheme(
+    val id: Long,
+    val name: String,
+    val purpose: String,
+    val proteinPct: Int,
+    val fatPct: Int,
+    val carbsPct: Int
+)
+
 data class DishDraft(
     val id: Long,
     val name: String,

@@ -28,10 +28,61 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         prefs().edit().putLong(KEY_ACTIVE_PROFILE, id).apply()
     }
 
-    fun schemeForProfile(): Int = prefs().getInt("${KEY_SCHEME_PREFIX}${activeProfileId()}", -1)
+    fun schemeForProfile(): String {
+        val key = "${KEY_SCHEME_PREFIX}${activeProfileId()}"
+        val string = prefs().getString(key, null)
+        if (string != null) return string
+        val old = prefs().getInt(key, -1)
+        return when {
+            old <= 0 -> SCHEME_OWN
+            else -> "builtin:$old"
+        }
+    }
 
-    fun saveScheme(index: Int) {
-        prefs().edit().putInt("${KEY_SCHEME_PREFIX}${activeProfileId()}", index).apply()
+    fun saveScheme(scheme: String) {
+        prefs().edit().putString("${KEY_SCHEME_PREFIX}${activeProfileId()}", scheme).apply()
+    }
+
+    fun customSchemes(): List<CustomScheme> {
+        val cursor = readableDatabase.query(
+            "custom_schemes", null, "profile_id = ?",
+            arrayOf(activeProfileId().toString()), null, null, "_id"
+        )
+        return cursor.use { c ->
+            val result = mutableListOf<CustomScheme>()
+            while (c.moveToNext()) {
+                result.add(
+                    CustomScheme(
+                        c.getLong(c.getColumnIndexOrThrow("_id")),
+                        c.getString(c.getColumnIndexOrThrow("name")),
+                        c.getString(c.getColumnIndexOrThrow("purpose")),
+                        c.getInt(c.getColumnIndexOrThrow("protein_pct")),
+                        c.getInt(c.getColumnIndexOrThrow("fat_pct")),
+                        c.getInt(c.getColumnIndexOrThrow("carbs_pct"))
+                    )
+                )
+            }
+            result
+        }
+    }
+
+    fun addCustomScheme(name: String, purpose: String, p: Int, f: Int, c: Int): Long =
+        writableDatabase.insert(
+            "custom_schemes", null, ContentValues().apply {
+                put("profile_id", activeProfileId())
+                put("name", name)
+                put("purpose", purpose)
+                put("protein_pct", p)
+                put("fat_pct", f)
+                put("carbs_pct", c)
+            }
+        )
+
+    fun deleteCustomScheme(id: Long) {
+        writableDatabase.delete(
+            "custom_schemes", "_id = ? AND profile_id = ?",
+            arrayOf(id.toString(), activeProfileId().toString())
+        )
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -89,6 +140,11 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         db.execSQL(
             "CREATE TABLE adjustments (profile_id INTEGER NOT NULL, date TEXT NOT NULL, " +
                 "kcal_delta REAL NOT NULL DEFAULT 0, PRIMARY KEY(profile_id, date))"
+        )
+        db.execSQL(
+            "CREATE TABLE custom_schemes (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "profile_id INTEGER NOT NULL, name TEXT NOT NULL, purpose TEXT NOT NULL DEFAULT '', " +
+                "protein_pct INTEGER NOT NULL, fat_pct INTEGER NOT NULL, carbs_pct INTEGER NOT NULL)"
         )
 
         for (p in STARTER_PRODUCTS) {
@@ -172,6 +228,13 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         }
         if (oldVersion < 12) {
             migrateProductsPerProfile(db)
+        }
+        if (oldVersion < 13) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS custom_schemes (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "profile_id INTEGER NOT NULL, name TEXT NOT NULL, purpose TEXT NOT NULL DEFAULT '', " +
+                    "protein_pct INTEGER NOT NULL, fat_pct INTEGER NOT NULL, carbs_pct INTEGER NOT NULL)"
+            )
         }
     }
 
@@ -1004,11 +1067,12 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 12
+        private const val DB_VERSION = 13
         private const val ASSET_PRODUCTS = "products_extended.json"
         private const val ASSET_BELARUS = "products_belarus.json"
         private const val KEY_ACTIVE_PROFILE = "active_profile_id"
         private const val KEY_SCHEME_PREFIX = "scheme_"
+        const val SCHEME_OWN = "own"
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }
 }

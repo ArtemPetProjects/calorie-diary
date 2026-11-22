@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <EditText
+            android:id="@+id/customSchemeName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/dish_name"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/customSchemePurpose"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/scheme_hint"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/customSchemeProtein"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/protein"
+            android:inputType="number"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/customSchemeFat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/fat"
+            android:inputType="number"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/customSchemeCarbs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/carbs"
+            android:inputType="number"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+</ScrollView>

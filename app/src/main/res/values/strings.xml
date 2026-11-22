@@ -73,6 +73,11 @@
     <string name="font_minus">A−</string>
     <string name="font_plus">A+</string>
     <string name="font_value">Смещение: %1$d</string>
+    <string name="choose_scheme">Выбрать схему БЖУ</string>
+    <string name="scheme_current">Схема БЖУ: %1$s</string>
+    <string name="add_custom_scheme">Создать свою схему</string>
+    <string name="delete_custom_scheme">Удалить свою схему</string>
+    <string name="invalid_scheme_percent">Белки, жиры и углеводы должны давать 100%</string>
     <string-array name="scheme_purposes">
         <item>базовый сбалансированный рацион по ВОЗ</item>
         <item>середины рекомендуемых диапазонов IOM</item>

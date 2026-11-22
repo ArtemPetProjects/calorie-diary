@@ -127,28 +127,12 @@
             android:inputType="numberDecimal"
             android:saveEnabled="false" />
 
-        <TextView
-            android:id="@+id/schemeHint"
+        <Button style="@style/AppButton"
+            android:id="@+id/chooseSchemeButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:visibility="gone"
-            android:text="@string/scheme_hint" />
-
-        <Spinner
-            android:saveEnabled="false"
-            android:id="@+id/schemeSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:entries="@array/macro_schemes" />
-
-        <Button style="@style/AppButton"
-            android:id="@+id/saveTargetsButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/save_targets" />
+            android:text="@string/choose_scheme" />
 
         <Switch
             android:id="@+id/darkThemeSwitch"

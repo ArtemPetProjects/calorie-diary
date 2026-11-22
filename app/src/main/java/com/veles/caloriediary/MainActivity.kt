@@ -17,15 +17,18 @@ class MainActivity : Activity() {
     private var activeTab = TAB_DAY
 
     override fun attachBaseContext(newBase: Context) {
-        val delta = newBase.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getInt(KEY_FONT_DELTA, 1)
+        val prefs = newBase.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val profileId = prefs.getLong(KEY_ACTIVE_PROFILE, 1L)
+        val delta = prefs.getInt(fontKey(profileId), prefs.getInt(KEY_FONT_DELTA, 1))
         val config = Configuration(newBase.resources.configuration)
         config.fontScale = fontScaleForDelta(delta)
         super.attachBaseContext(newBase.createConfigurationContext(config))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val dark = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_DARK, false)
+        val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
+        val profileId = prefs.getLong(KEY_ACTIVE_PROFILE, 1L)
+        val dark = prefs.getBoolean(themeKey(profileId), prefs.getBoolean(KEY_DARK, false))
         setTheme(if (dark) R.style.AppTheme_Dark else R.style.AppTheme_Light)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -78,6 +81,9 @@ class MainActivity : Activity() {
         const val PREFS = "settings"
         const val KEY_DARK = "dark_theme"
         const val KEY_FONT_DELTA = "font_delta"
+        const val KEY_ACTIVE_PROFILE = "active_profile_id"
+        fun fontKey(profileId: Long) = "font_delta_$profileId"
+        fun themeKey(profileId: Long) = "dark_theme_$profileId"
         private const val KEY_TAB = "activeTab"
         private const val KEY_DATE = "selectedDate"
         private const val TAB_DAY = "day"
