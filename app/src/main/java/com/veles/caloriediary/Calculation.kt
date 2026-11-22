@@ -98,6 +98,18 @@ fun rankProductNames(names: List<String>, query: String): List<String> {
         names.indices.filter { !lowered[it].startsWith(q) && lowered[it].contains(q) }.map { names[it] }
 }
 
+fun rankProductNamesWithRecent(
+    names: List<String>,
+    query: String,
+    recent: Set<String>
+): List<String> {
+    val ranked = rankProductNames(names, query)
+    if (query.isBlank() || recent.isEmpty()) return ranked
+    val loweredRecent = recent.map { it.lowercase() }.toSet()
+    return ranked.filter { it.lowercase() in loweredRecent } +
+        ranked.filter { it.lowercase() !in loweredRecent }
+}
+
 fun rescale(values: Nutrients, fromGrams: Double, toGrams: Double): Nutrients? {
     if (fromGrams <= 0.0 || toGrams <= 0.0) return null
     val k = toGrams / fromGrams

@@ -48,6 +48,12 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         view.findViewById<Button>(R.id.addEntryButton).setOnClickListener { showAddDialog() }
         view.findViewById<Button>(R.id.addDishButton).setOnClickListener { openDishDialog() }
         continueDishButton.setOnClickListener { openDishDialog(draft = true) }
+        continueDishButton.setOnLongClickListener {
+            db.clearDraft()
+            Toast.makeText(activity, R.string.draft_deleted, Toast.LENGTH_SHORT).show()
+            refresh()
+            true
+        }
         refresh()
     }
 
@@ -95,7 +101,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         }
         weightButton.setOnClickListener { openWeightDialog() }
         continueDishButton.visibility =
-            if (db.draftItems().isNotEmpty()) View.VISIBLE else View.GONE
+            if (db.hasDraft()) View.VISIBLE else View.GONE
 
         entryList.removeAllViews()
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -268,7 +274,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
     private fun fmt(value: Double) = String.format(Locale.getDefault(), "%.1f", value)
 
     fun openDishDialog(dishId: Long = 0L, draft: Boolean = false) {
-        DishDialog(activity, db, dishId, draft = draft) { id, grams, addToDay ->
+        DishDialog(activity, db, dishId, draft = draft, onDraftSaved = { refresh() }) { id, grams, addToDay ->
             if (addToDay) {
                 db.products().firstOrNull { it.id == id }?.let { dish ->
                     db.addEntry(
@@ -289,7 +295,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         val newFields = content.findViewById<LinearLayout>(R.id.newProductFields)
 
         val products = db.products()
-        productInput.setAdapter(SuggestionAdapter(activity, products))
+        productInput.setAdapter(SuggestionAdapter(activity, products, db.recentProductIds()))
 
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}

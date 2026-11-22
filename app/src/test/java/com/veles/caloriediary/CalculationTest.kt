@@ -155,6 +155,16 @@ class CalculationTest {
     }
 
     @Test
+    fun recentlyUsedProductsGoFirst() {
+        val names = listOf("Слива", "Булка со сливой", "Яблоко", "Сливы сушёные")
+        val ranked = rankProductNamesWithRecent(
+            names, "сли", setOf("булка со сливой")
+        )
+        assertEquals("Булка со сливой", ranked.first())
+        assertEquals(4, ranked.size)
+    }
+
+    @Test
     fun rescaleRecalculatesEntryMacros() {
         val values = Nutrients(100.0, 10.0, 20.0, 30.0)
         val scaled = rescale(values, 100.0, 200.0)!!

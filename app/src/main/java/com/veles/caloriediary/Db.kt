@@ -49,6 +49,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         createDishItems(db)
         db.execSQL("CREATE TABLE weights (date TEXT PRIMARY KEY, kg REAL NOT NULL)")
         db.execSQL("CREATE TABLE dish_drafts (_id INTEGER PRIMARY KEY CHECK(_id = 1), items_json TEXT NOT NULL)")
+        db.execSQL("CREATE TABLE product_usage (product_id INTEGER PRIMARY KEY, used_at INTEGER NOT NULL)")
 
         for (p in STARTER_PRODUCTS) {
             db.insertWithOnConflict("products", null, productValues(p), SQLiteDatabase.CONFLICT_IGNORE)
@@ -113,6 +114,9 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         }
         if (oldVersion < 7) {
             db.execSQL("CREATE TABLE IF NOT EXISTS dish_drafts (_id INTEGER PRIMARY KEY CHECK(_id = 1), items_json TEXT NOT NULL)")
+        }
+        if (oldVersion < 8) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS product_usage (product_id INTEGER PRIMARY KEY, used_at INTEGER NOT NULL)")
         }
     }
 
@@ -281,6 +285,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
                         putNutrients(this, item.per100)
                     }
                     writableDatabase.insert("dish_items", null, iv)
+                    markUsed(item.productId)
                 }
             }
             writableDatabase.setTransactionSuccessful()
@@ -348,7 +353,9 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             putNutrients(this, e.values)
             put("created_at", if (e.createdAt > 0L) e.createdAt else System.currentTimeMillis())
         }
-        return writableDatabase.insert("entries", null, values)
+        val id = writableDatabase.insert("entries", null, values)
+        markUsed(e.productId)
+        return id
     }
 
     fun updateEntry(id: Long, grams: Double, values: Nutrients): Int {
@@ -408,6 +415,28 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         )
     }
 
+    fun markUsed(productId: Long) {
+        if (productId <= 0L) return
+        val values = ContentValues().apply {
+            put("product_id", productId)
+            put("used_at", System.currentTimeMillis())
+        }
+        writableDatabase.insertWithOnConflict(
+            "product_usage", null, values, SQLiteDatabase.CONFLICT_REPLACE
+        )
+    }
+
+    fun recentProductIds(): Set<Long> {
+        val cursor = readableDatabase.query(
+            "product_usage", arrayOf("product_id"), null, null, null, null, "used_at DESC"
+        )
+        return cursor.use { c ->
+            val result = mutableSetOf<Long>()
+            while (c.moveToNext()) result.add(c.getLong(0))
+            result
+        }
+    }
+
     fun saveDraft(items: List<DishIngredient>) {
         val array = JSONArray()
         for (item in items) {
@@ -431,12 +460,23 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         )
     }
 
+    fun hasDraft(): Boolean {
+        val cursor = readableDatabase.query(
+            "dish_drafts", arrayOf("1"), "_id = 1", null, null, null, null
+        )
+        return cursor.use { it.moveToFirst() }
+    }
+
     fun draftItems(): List<DishIngredient> {
         val cursor = readableDatabase.query(
             "dish_drafts", arrayOf("items_json"), "_id = 1", null, null, null, null
         )
         val json = cursor.use { c -> if (c.moveToFirst()) c.getString(0) else null } ?: return emptyList()
-        val array = JSONArray(json)
+        val array = try {
+            JSONArray(json)
+        } catch (e: Exception) {
+            return emptyList()
+        }
         return (0 until array.length()).map { i ->
             val o = array.getJSONObject(i)
             DishIngredient(
@@ -515,7 +555,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 7
+        private const val DB_VERSION = 8
         private const val ASSET_PRODUCTS = "products_extended.json"
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }

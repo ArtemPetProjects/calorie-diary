@@ -13,11 +13,18 @@ data class Suggestion(val product: Product) {
     override fun toString(): String = product.name
 }
 
-class SuggestionAdapter(activity: Activity, products: List<Product>) :
-    ArrayAdapter<Suggestion>(activity, R.layout.item_suggestion, products.map { Suggestion(it) }) {
+class SuggestionAdapter(
+    activity: Activity,
+    products: List<Product>,
+    private val recentIds: Set<Long> = emptySet()
+) : ArrayAdapter<Suggestion>(activity, R.layout.item_suggestion, products.map { Suggestion(it) }) {
 
     private val all = products.map { Suggestion(it) }
     private val byName = all.associateBy { it.product.name.lowercase(Locale.getDefault()) }
+    private val recentNames = products
+        .filter { it.id in recentIds }
+        .map { it.name.lowercase(Locale.getDefault()) }
+        .toSet()
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val row = convertView ?: LayoutInflater.from(context)
@@ -35,7 +42,7 @@ class SuggestionAdapter(activity: Activity, products: List<Product>) :
         override fun performFiltering(constraint: CharSequence?): FilterResults {
             val query = constraint?.toString() ?: ""
             val names = all.map { it.product.name }
-            val ranked = rankProductNames(names, query)
+            val ranked = rankProductNamesWithRecent(names, query, recentNames)
             val list = ranked.mapNotNull { byName[it.lowercase(Locale.getDefault())] }
                 .take(50)
             return FilterResults().apply {

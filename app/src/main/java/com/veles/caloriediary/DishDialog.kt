@@ -23,11 +23,12 @@ class DishDialog(
     private val dishId: Long = 0L,
     private val showAddToDay: Boolean = true,
     private val draft: Boolean = false,
+    private val onDraftSaved: () -> Unit = {},
     private val onSaved: (Long, Double, Boolean) -> Unit
 ) {
 
     private val products = db.products()
-    private val adapter = SuggestionAdapter(activity, products)
+    private val adapter = SuggestionAdapter(activity, products, db.recentProductIds())
     private val content = LayoutInflater.from(activity).inflate(R.layout.dialog_dish, null)
     private val nameInput: EditText = content.findViewById(R.id.dishNameInput)
     private val ingredientList: LinearLayout = content.findViewById(R.id.ingredientList)
@@ -40,8 +41,10 @@ class DishDialog(
         addToDayCheck.visibility = if (showAddToDay) View.VISIBLE else View.GONE
         if (draft) {
             for (item in db.draftItems()) {
+                val name = products.firstOrNull { it.id == item.productId }?.name
+                    ?: item.productName
                 addIngredient().apply {
-                    productInput.setText(item.productName)
+                    productInput.setText(name)
                     weightInput.setText(fmt(item.grams))
                 }
             }
@@ -72,11 +75,13 @@ class DishDialog(
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener { save(dialog) }
             dialog.getButton(Dialog.BUTTON_NEUTRAL).setOnClickListener {
                 val items = collectItems()
-                if (items.isEmpty()) {
+                if (items.isEmpty() || rows.size != items.size) {
                     Toast.makeText(activity, R.string.invalid_dish, Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
                 db.saveDraft(items)
+                Toast.makeText(activity, R.string.draft_saved, Toast.LENGTH_SHORT).show()
+                onDraftSaved()
                 dialog.dismiss()
             }
         }
@@ -167,7 +172,7 @@ class DishDialog(
             Toast.makeText(activity, R.string.duplicate_product, Toast.LENGTH_SHORT).show()
             return
         }
-        db.clearDraft()
+        if (draft) db.clearDraft()
         Toast.makeText(activity, R.string.dish_saved, Toast.LENGTH_SHORT).show()
         onSaved(id, finalGrams, addToDayCheck.isChecked)
         dialog.dismiss()
