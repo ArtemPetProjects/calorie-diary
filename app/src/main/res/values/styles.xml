@@ -33,7 +33,7 @@
         <item name="android:background">?attr/buttonBg</item>
         <item name="android:textColor">?android:attr/textColorPrimary</item>
         <item name="android:minHeight">48dp</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">15sp</item>
         <item name="android:paddingStart">12dp</item>
         <item name="android:paddingEnd">12dp</item>
     </style>
