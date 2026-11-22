@@ -55,6 +55,16 @@ fun gramsFromScheme(kcal: Double, scheme: MacroScheme): Targets = Targets(
     carbs = round1(kcal * scheme.carbsPct / 100.0 / 4.0)
 )
 
+// Своя схема: белки = вес × 2, жиры = вес / 2, остаток калорий — углеводы.
+fun weightScheme(weightKg: Double, kcal: Double): Targets? {
+    if (weightKg <= 0.0 || kcal <= 0.0) return null
+    val protein = round1(weightKg * 2.0)
+    val fat = round1(weightKg / 2.0)
+    val carbs = round((kcal - protein * 4.0 - fat * 9.0) / 4.0)
+    if (carbs < 0.0) return null
+    return Targets(round1(protein * 4.0 + fat * 9.0 + carbs * 4.0), protein, fat, carbs)
+}
+
 data class MealGroup(val startMs: Long, val entries: List<Entry>)
 
 fun groupByMeal(entries: List<Entry>, windowMs: Long = 3_600_000L): List<MealGroup> {

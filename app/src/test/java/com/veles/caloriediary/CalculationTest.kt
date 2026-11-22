@@ -115,6 +115,21 @@ class CalculationTest {
     }
 
     @Test
+    fun weightSchemeUsesBodyWeight() {
+        val t = weightScheme(70.0, 2000.0)!!
+        assertEquals(140.0, t.protein, 0.01)
+        assertEquals(35.0, t.fat, 0.01)
+        assertEquals(281.0, t.carbs, 0.01)
+        assert(kotlin.math.abs(t.kcal - 2000.0) <= 2.0)
+    }
+
+    @Test
+    fun weightSchemeRejectsZeroInputs() {
+        assertNull(weightScheme(0.0, 2000.0))
+        assertNull(weightScheme(70.0, 0.0))
+    }
+
+    @Test
     fun weekDatesCrossesMonthAndLeapDay() {
         assertEquals(
             listOf(
