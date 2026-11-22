@@ -17,7 +17,9 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class DayView(private val activity: Activity, initialDate: String? = null) {
@@ -82,25 +84,40 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         bindBar(R.id.carbsBar, R.id.carbsValue, totals.carbs, targets.carbs)
 
         entryList.removeAllViews()
-        for (entry in entries) {
-            val row = LayoutInflater.from(activity).inflate(R.layout.item_entry, entryList, false)
-            row.findViewById<TextView>(R.id.entryText).text =
-                "${entry.productName} • ${fmt(entry.grams)} г • ${fmt(entry.values.kcal)} ккал"
-            row.findViewById<TextView>(R.id.entryMacros).text = activity.getString(
-                R.string.entry_macros,
-                fmt(entry.values.protein), fmt(entry.values.fat), fmt(entry.values.carbs)
-            )
-            row.findViewById<Button>(R.id.deleteEntryButton).setOnClickListener {
-                android.app.AlertDialog.Builder(activity)
-                    .setTitle(R.string.confirm_delete)
-                    .setPositiveButton(R.string.delete) { _, _ ->
-                        db.deleteEntry(entry.id)
-                        refresh()
-                    }
-                    .setNegativeButton(R.string.cancel, null)
-                    .show()
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        for (group in groupByMeal(entries)) {
+            val header = TextView(activity)
+            header.text = if (group.startMs <= 0L) {
+                activity.getString(R.string.meal_unknown)
+            } else {
+                val kcal = sum(group.entries.map { it.values }).kcal
+                activity.getString(R.string.meal_time, timeFormat.format(Date(group.startMs)), fmt(kcal))
             }
-            entryList.addView(row)
+            header.textSize = 14f
+            header.setPadding(0, 8, 0, 2)
+            entryList.addView(header)
+
+            for (entry in group.entries) {
+                val row = LayoutInflater.from(activity)
+                    .inflate(R.layout.item_entry, entryList, false)
+                row.findViewById<TextView>(R.id.entryText).text =
+                    "${entry.productName} • ${fmt(entry.grams)} г • ${fmt(entry.values.kcal)} ккал"
+                row.findViewById<TextView>(R.id.entryMacros).text = activity.getString(
+                    R.string.entry_macros,
+                    fmt(entry.values.protein), fmt(entry.values.fat), fmt(entry.values.carbs)
+                )
+                row.findViewById<Button>(R.id.deleteEntryButton).setOnClickListener {
+                    android.app.AlertDialog.Builder(activity)
+                        .setTitle(R.string.confirm_delete)
+                        .setPositiveButton(R.string.delete) { _, _ ->
+                            db.deleteEntry(entry.id)
+                            refresh()
+                        }
+                        .setNegativeButton(R.string.cancel, null)
+                        .show()
+                }
+                entryList.addView(row)
+            }
         }
     }
 

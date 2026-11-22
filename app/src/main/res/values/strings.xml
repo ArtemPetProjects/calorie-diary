@@ -43,4 +43,6 @@
     <string name="dish_preview">%1$s ккал • Б %2$s / Ж %3$s / У %4$s на 100 г</string>
     <string name="per_100_info">%1$s ккал • Б %2$s / Ж %3$s / У %4$s на 100 г</string>
     <string name="entry_macros">Б %1$s / Ж %2$s / У %3$s</string>
+    <string name="meal_time">Приём пищи %1$s · %2$s ккал</string>
+    <string name="meal_unknown">Без времени</string>
 </resources>
