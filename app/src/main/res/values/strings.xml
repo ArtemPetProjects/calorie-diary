@@ -69,6 +69,10 @@
     <string name="scheme_error">Не удалось применить схему</string>
     <string name="scheme_own_title">Схема Артёма по Брину</string>
     <string name="scheme_own_details">Белки = вес×2, жиры = вес/2, углеводы — остаток калорий</string>
+    <string name="font_size_title">Размер шрифта</string>
+    <string name="font_minus">A−</string>
+    <string name="font_plus">A+</string>
+    <string name="font_value">Смещение: %1$d</string>
     <string-array name="scheme_purposes">
         <item>базовый сбалансированный рацион по ВОЗ</item>
         <item>середины рекомендуемых диапазонов IOM</item>

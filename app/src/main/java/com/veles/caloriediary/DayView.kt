@@ -358,7 +358,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         productInput.setAdapter(adapter)
         productInput.threshold = 0
         val edge = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, 2f, activity.resources.displayMetrics
+            TypedValue.COMPLEX_UNIT_DIP, 4f, activity.resources.displayMetrics
         ).toInt()
         productInput.dropDownWidth =
             (activity.resources.displayMetrics.widthPixels - 2 * edge).coerceAtLeast(1)

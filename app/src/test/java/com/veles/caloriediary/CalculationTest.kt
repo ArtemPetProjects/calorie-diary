@@ -242,6 +242,14 @@ class CalculationTest {
     }
 
     @Test
+    fun fontScaleIsClampedToFivePoints() {
+        assertEquals(1.06f, fontScaleForDelta(1), 0.001f)
+        assertEquals(1.3f, fontScaleForDelta(5), 0.001f)
+        assertEquals(0.7f, fontScaleForDelta(-5), 0.001f)
+        assertEquals(0.7f, fontScaleForDelta(-9), 0.001f)
+    }
+
+    @Test
     fun unnamedDraftGetsStableTitle() {
         assertEquals("Блюдо без названия 2", draftTitle("", 2))
         assertEquals("Суп", draftTitle("Суп", 2))

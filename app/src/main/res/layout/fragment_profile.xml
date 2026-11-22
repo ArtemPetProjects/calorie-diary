@@ -157,6 +157,43 @@
             android:layout_marginTop="24dp"
             android:text="@string/dark_theme" />
 
+        <TextView
+            android:id="@+id/fontLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/font_size_title" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button style="@style/AppButton"
+                android:id="@+id/fontMinusButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="@string/font_minus" />
+
+            <TextView
+                android:id="@+id/fontValue"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="15sp" />
+
+            <Button style="@style/AppButton"
+                android:id="@+id/fontPlusButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="@string/font_plus" />
+        </LinearLayout>
+
     </LinearLayout>
 
 </ScrollView>

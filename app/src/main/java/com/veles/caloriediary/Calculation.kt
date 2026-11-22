@@ -69,6 +69,8 @@ fun autoFilledKcal(
     return kcalFromMacros(protein, fat, carbs)
 }
 
+fun fontScaleForDelta(delta: Int): Float = 1f + delta.coerceIn(-5, 5) * 0.06f
+
 fun draftTitle(name: String, index: Int): String =
     name.ifBlank { "Блюдо без названия $index" }
 

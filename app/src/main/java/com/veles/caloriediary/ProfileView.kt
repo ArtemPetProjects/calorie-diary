@@ -193,6 +193,20 @@ class ProfileView(private val activity: Activity) {
             activity.recreate()
         }
 
+        val fontValue = view.findViewById<TextView>(R.id.fontValue)
+        var fontDelta = prefs.getInt(MainActivity.KEY_FONT_DELTA, 1).coerceIn(-5, 5)
+        fontValue.text = activity.getString(R.string.font_value, fontDelta)
+        view.findViewById<Button>(R.id.fontMinusButton).setOnClickListener {
+            fontDelta = (fontDelta - 1).coerceIn(-5, 5)
+            prefs.edit().putInt(MainActivity.KEY_FONT_DELTA, fontDelta).apply()
+            activity.recreate()
+        }
+        view.findViewById<Button>(R.id.fontPlusButton).setOnClickListener {
+            fontDelta = (fontDelta + 1).coerceIn(-5, 5)
+            prefs.edit().putInt(MainActivity.KEY_FONT_DELTA, fontDelta).apply()
+            activity.recreate()
+        }
+
         val savedWeight = db.bodyWeight()
         if (savedWeight > 0.0) weightInput.setText(fmt(savedWeight))
 

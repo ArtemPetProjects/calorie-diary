@@ -1,6 +1,8 @@
 package com.veles.caloriediary
 
 import android.app.Activity
+import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -13,6 +15,14 @@ class MainActivity : Activity() {
     private lateinit var productsView: ProductsView
     private lateinit var profileView: ProfileView
     private var activeTab = TAB_DAY
+
+    override fun attachBaseContext(newBase: Context) {
+        val delta = newBase.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getInt(KEY_FONT_DELTA, 1)
+        val config = Configuration(newBase.resources.configuration)
+        config.fontScale = fontScaleForDelta(delta)
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val dark = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_DARK, false)
@@ -67,6 +77,7 @@ class MainActivity : Activity() {
     companion object {
         const val PREFS = "settings"
         const val KEY_DARK = "dark_theme"
+        const val KEY_FONT_DELTA = "font_delta"
         private const val KEY_TAB = "activeTab"
         private const val KEY_DATE = "selectedDate"
         private const val TAB_DAY = "day"
