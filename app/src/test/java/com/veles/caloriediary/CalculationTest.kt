@@ -72,6 +72,38 @@ class CalculationTest {
     }
 
     @Test
+    fun kcalFromMacrosUses4_9_4() {
+        assertEquals(1260.0, kcalFromMacros(30.0, 60.0, 150.0), 0.01)
+    }
+
+    @Test
+    fun macroSchemesGiveGrams() {
+        assertEquals(5, MACRO_SCHEMES.size)
+        for (scheme in MACRO_SCHEMES) {
+            assertEquals(100, scheme.proteinPct + scheme.fatPct + scheme.carbsPct)
+        }
+        val targets = gramsFromScheme(2000.0, MACRO_SCHEMES.first())
+        assertEquals(2000.0, targets.kcal, 0.01)
+        assertEquals(75.0, targets.protein, 0.01)
+        assertEquals(66.7, targets.fat, 0.01)
+        assertEquals(275.0, targets.carbs, 0.01)
+    }
+
+    @Test
+    fun groupByMealUsesOneHourWindow() {
+        fun entry(id: Long, at: Long) = Entry(
+            id, "2026-11-22", 1, "Продукт", 100.0, Nutrients(10.0, 1.0, 1.0, 1.0), at
+        )
+        val groups = groupByMeal(
+            listOf(entry(1, 0L), entry(2, 3_600_000L), entry(3, 3_660_000L))
+        )
+        assertEquals(2, groups.size)
+        assertEquals(2, groups[0].entries.size)
+        assertEquals(1, groups[1].entries.size)
+        assertEquals(0, groupByMeal(emptyList()).size)
+    }
+
+    @Test
     fun weekDatesCrossesMonthAndLeapDay() {
         assertEquals(
             listOf(

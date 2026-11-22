@@ -35,6 +35,50 @@ fun dishPer100(items: List<DishIngredient>, finalGrams: Double): Nutrients? {
     )
 }
 
+data class MacroScheme(val name: String, val proteinPct: Int, val fatPct: Int, val carbsPct: Int)
+
+val MACRO_SCHEMES = listOf(
+    MacroScheme("Поддержание", 15, 30, 55),
+    MacroScheme("Похудение", 28, 27, 45),
+    MacroScheme("Набор мышц", 25, 25, 50),
+    MacroScheme("Низкоуглеводная", 25, 45, 30),
+    MacroScheme("Кето", 10, 70, 20)
+)
+
+fun kcalFromMacros(protein: Double, fat: Double, carbs: Double): Double =
+    round1(protein * 4.0 + fat * 9.0 + carbs * 4.0)
+
+fun gramsFromScheme(kcal: Double, scheme: MacroScheme): Targets = Targets(
+    kcal = kcal,
+    protein = round1(kcal * scheme.proteinPct / 100.0 / 4.0),
+    fat = round1(kcal * scheme.fatPct / 100.0 / 9.0),
+    carbs = round1(kcal * scheme.carbsPct / 100.0 / 4.0)
+)
+
+data class MealGroup(val startMs: Long, val entries: List<Entry>)
+
+fun groupByMeal(entries: List<Entry>, windowMs: Long = 3_600_000L): List<MealGroup> {
+    if (entries.isEmpty()) return emptyList()
+    val result = mutableListOf<MealGroup>()
+    val sorted = entries.sortedBy { it.createdAt }
+    var current = mutableListOf<Entry>()
+    var start = 0L
+    for (entry in sorted) {
+        if (current.isEmpty()) {
+            start = entry.createdAt
+            current.add(entry)
+        } else if (entry.createdAt - start <= windowMs) {
+            current.add(entry)
+        } else {
+            result.add(MealGroup(start, current))
+            start = entry.createdAt
+            current = mutableListOf(entry)
+        }
+    }
+    if (current.isNotEmpty()) result.add(MealGroup(start, current))
+    return result
+}
+
 fun parseGrams(raw: String): Double? {
     val value = raw.trim().replace(',', '.').toDoubleOrNull() ?: return null
     return if (value > 0.0) value else null

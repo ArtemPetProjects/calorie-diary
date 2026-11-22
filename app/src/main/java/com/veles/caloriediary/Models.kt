@@ -22,7 +22,8 @@ data class Entry(
     val productId: Long,
     val productName: String,
     val grams: Double,
-    val values: Nutrients
+    val values: Nutrients,
+    val createdAt: Long = 0L
 )
 
 data class Targets(val kcal: Double, val protein: Double, val fat: Double, val carbs: Double)
