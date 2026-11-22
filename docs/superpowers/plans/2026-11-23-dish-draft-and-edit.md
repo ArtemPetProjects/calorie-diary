@@ -22,16 +22,16 @@
 - Редактирование блюда сохраняет id и вес.
 
 ### Task 1: Черновик в БД
-- [ ] `DB_VERSION = 7`; таблица `dish_drafts`; `saveDraft/draftItems/clearDraft`.
-- [ ] Коммит `feat: store dish drafts`.
+- [x] `DB_VERSION = 7`; таблица `dish_drafts`; `saveDraft/draftItems/clearDraft`.
+- [x] Коммит `feat: store dish drafts`.
 
 ### Task 2: DishDialog и плитка
-- [ ] Кнопка «Отложить», режим черновика, плитка «Продолжить создание» в «Дне».
-- [ ] Коммит `feat: add deferred dish creation`.
+- [x] Кнопка «Отложить», режим черновика, плитка «Продолжить создание» в «Дне».
+- [x] Коммит `feat: add deferred dish creation`.
 
 ### Task 3: Редактирование и визуал
-- [ ] Проверить формы редактирования; шрифты 15/13sp, заголовок 15sp, рамка 2dp.
-- [ ] Коммит `feat: enlarge meal list and border`.
+- [x] Проверить формы редактирования; шрифты 15/13sp, заголовок 15sp, рамка 2dp.
+- [x] Коммит `feat: enlarge meal list and border`.
 
 ### Task 4: Финал
-- [ ] `gradlew test assembleDebug`, APK, закрыть BL-079–BL-082, документы.
+- [x] `gradlew test assembleDebug`, APK, закрыть BL-079–BL-082, документы.
