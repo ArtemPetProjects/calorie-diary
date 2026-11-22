@@ -64,6 +64,8 @@
         <item>Кето</item>
     </string-array>
     <string name="scheme_label">%1$s · Б%2$d/Ж%3$d/У%4$d — %5$s</string>
+    <string name="scheme_details">Соотношение БЖУ: белки %1$d%% · жиры %2$d%% · углеводы %3$d%%</string>
+    <string name="scheme_title">%1$s — %2$s</string>
     <string-array name="scheme_purposes">
         <item>базовый сбалансированный рацион по ВОЗ</item>
         <item>середины рекомендуемых диапазонов IOM</item>
@@ -97,6 +99,11 @@
     <string name="default_profile">Мой профиль</string>
     <string name="adjustment_hint">Корректировка нормы, ккал (+/-)</string>
     <string name="invalid_adjustment">Некорректное значение корректировки</string>
+    <string name="enter_product_name">Введите название продукта</string>
+    <string name="enter_kcal">Укажите калорийность</string>
+    <string name="unnamed_dish">Блюдо без названия</string>
+    <string name="create_product_from_dish">Создать свой продукт</string>
+    <string name="choose_deferred_dish">Выберите отложенное блюдо</string>
     <string name="progress_excess">%1$s / %2$s · %3$d%% · превышение +%4$s</string>
     <string name="profile_label">Профиль</string>
     <string name="add_profile">Добавить</string>

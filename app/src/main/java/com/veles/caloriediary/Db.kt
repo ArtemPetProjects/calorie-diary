@@ -70,6 +70,11 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             "CREATE TABLE dish_drafts (profile_id INTEGER PRIMARY KEY, items_json TEXT NOT NULL)"
         )
         db.execSQL(
+            "CREATE TABLE dish_drafts_v2 (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "profile_id INTEGER NOT NULL, name TEXT NOT NULL, items_json TEXT NOT NULL, " +
+                "created_at INTEGER NOT NULL)"
+        )
+        db.execSQL(
             "CREATE TABLE product_usage (profile_id INTEGER NOT NULL, product_id INTEGER NOT NULL, " +
                 "used_at INTEGER NOT NULL, PRIMARY KEY(profile_id, product_id))"
         )
@@ -153,6 +158,32 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         }
         if (oldVersion < 10) {
             migrateToProfiles(db)
+        }
+        if (oldVersion < 11) {
+            migrateDraftsV2(db)
+        }
+    }
+
+    private fun migrateDraftsV2(db: SQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS dish_drafts_v2 (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "profile_id INTEGER NOT NULL, name TEXT NOT NULL, items_json TEXT NOT NULL, " +
+                "created_at INTEGER NOT NULL)"
+        )
+        if (!hasTable(db, "dish_drafts")) return
+        val cursor = db.rawQuery("SELECT profile_id, items_json FROM dish_drafts", null)
+        val old = mutableListOf<Pair<Long, String>>()
+        cursor.use { c ->
+            while (c.moveToNext()) old.add(c.getLong(0) to c.getString(1))
+        }
+        for ((profileId, json) in old) {
+            val values = ContentValues().apply {
+                put("profile_id", profileId)
+                put("name", appContext.getString(R.string.unnamed_dish))
+                put("items_json", json)
+                put("created_at", System.currentTimeMillis())
+            }
+            db.insert("dish_drafts_v2", null, values)
         }
     }
 
@@ -629,6 +660,81 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         }
     }
 
+    fun drafts(): List<DishDraft> {
+        val cursor = readableDatabase.query(
+            "dish_drafts_v2", null, "profile_id = ?",
+            arrayOf(activeProfileId().toString()), null, null, "created_at DESC"
+        )
+        return cursor.use { c ->
+            val result = mutableListOf<DishDraft>()
+            while (c.moveToNext()) {
+                result.add(
+                    DishDraft(
+                        c.getLong(c.getColumnIndexOrThrow("_id")),
+                        c.getString(c.getColumnIndexOrThrow("name")),
+                        parseDraftItems(c.getString(c.getColumnIndexOrThrow("items_json"))),
+                        c.getLong(c.getColumnIndexOrThrow("created_at"))
+                    )
+                )
+            }
+            result
+        }
+    }
+
+    fun draft(id: Long): DishDraft? = drafts().firstOrNull { it.id == id }
+
+    fun saveDraft(name: String, items: List<DishIngredient>): Long {
+        val array = JSONArray()
+        for (item in items) {
+            val o = JSONObject().apply {
+                put("product_id", item.productId)
+                put("product_name", item.productName)
+                put("grams", item.grams)
+                put("kcal", item.per100.kcal)
+                put("protein", item.per100.protein)
+                put("fat", item.per100.fat)
+                put("carbs", item.per100.carbs)
+            }
+            array.put(o)
+        }
+        val values = ContentValues().apply {
+            put("profile_id", activeProfileId())
+            put("name", draftTitle(name, drafts().size + 1))
+            put("items_json", array.toString())
+            put("created_at", System.currentTimeMillis())
+        }
+        return writableDatabase.insert("dish_drafts_v2", null, values)
+    }
+
+    fun deleteDraft(id: Long) {
+        writableDatabase.delete(
+            "dish_drafts_v2", "_id = ? AND profile_id = ?",
+            arrayOf(id.toString(), activeProfileId().toString())
+        )
+    }
+
+    private fun parseDraftItems(json: String): List<DishIngredient> {
+        val array = try {
+            JSONArray(json)
+        } catch (e: Exception) {
+            return emptyList()
+        }
+        return (0 until array.length()).map { i ->
+            val o = array.getJSONObject(i)
+            DishIngredient(
+                productId = o.getLong("product_id"),
+                productName = o.getString("product_name"),
+                grams = o.getDouble("grams"),
+                per100 = Nutrients(
+                    kcal = o.getDouble("kcal"),
+                    protein = o.getDouble("protein"),
+                    fat = o.getDouble("fat"),
+                    carbs = o.getDouble("carbs")
+                )
+            )
+        }
+    }
+
     fun saveDraft(items: List<DishIngredient>) {
         val array = JSONArray()
         for (item in items) {
@@ -838,7 +944,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 10
+        private const val DB_VERSION = 11
         private const val ASSET_PRODUCTS = "products_extended.json"
         private const val ASSET_BELARUS = "products_belarus.json"
         private const val KEY_ACTIVE_PROFILE = "active_profile_id"

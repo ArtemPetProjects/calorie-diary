@@ -17,6 +17,7 @@ import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ListView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -61,19 +62,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             db.saveAdjustment(selectedDate, delta)
             refresh()
         }
-        continueDishButton.setOnClickListener { openDishDialog(draft = true) }
-        continueDishButton.setOnLongClickListener {
-            android.app.AlertDialog.Builder(activity)
-                .setMessage(R.string.delete_draft_confirm)
-                .setPositiveButton(R.string.delete) { _, _ ->
-                    db.clearDraft()
-                    Toast.makeText(activity, R.string.draft_deleted, Toast.LENGTH_SHORT).show()
-                    refresh()
-                }
-                .setNegativeButton(R.string.cancel, null)
-                .show()
-            true
-        }
+        continueDishButton.setOnClickListener { showDraftPicker() }
         refresh()
     }
 
@@ -123,7 +112,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         }
         weightButton.setOnClickListener { openWeightDialog() }
         continueDishButton.visibility =
-            if (db.hasDraft()) View.VISIBLE else View.GONE
+            if (db.drafts().isNotEmpty()) View.VISIBLE else View.GONE
 
         entryList.removeAllViews()
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -321,8 +310,29 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
 
     private fun fmt(value: Double) = String.format(Locale.getDefault(), "%.1f", value)
 
-    fun openDishDialog(dishId: Long = 0L, draft: Boolean = false) {
-        DishDialog(activity, db, dishId, draft = draft, onDraftSaved = { refresh() }) { id, grams, addToDay ->
+    private fun showDraftPicker() {
+        val drafts = db.drafts()
+        if (drafts.isEmpty()) return
+        var selected = 0
+        val names = drafts.map { it.name }.toTypedArray()
+        android.app.AlertDialog.Builder(activity)
+            .setTitle(R.string.choose_deferred_dish)
+            .setSingleChoiceItems(names, 0) { _, which -> selected = which }
+            .setPositiveButton(R.string.continue_dish) { _, _ ->
+                openDishDialog(draftId = drafts[selected].id)
+            }
+            .setNeutralButton(R.string.delete) { _, _ ->
+                val draft = drafts[selected]
+                db.deleteDraft(draft.id)
+                Toast.makeText(activity, R.string.draft_deleted, Toast.LENGTH_SHORT).show()
+                refresh()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    fun openDishDialog(dishId: Long = 0L, draftId: Long = 0L) {
+        DishDialog(activity, db, dishId, draftId = draftId, onDraftSaved = { refresh() }) { id, grams, addToDay ->
             if (addToDay) {
                 db.products().firstOrNull { it.id == id }?.let { dish ->
                     db.addEntry(
@@ -336,26 +346,24 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
 
     private fun showAddDialog() {
         val content = LayoutInflater.from(activity).inflate(R.layout.dialog_entry, null)
-        val productInput = content.findViewById<AutoCompleteTextView>(R.id.productInput)
+        val productInput = content.findViewById<EditText>(R.id.productInput)
+        val suggestions = content.findViewById<ListView>(R.id.productSuggestions)
         val weightInput = content.findViewById<EditText>(R.id.weightInput)
         val preview = content.findViewById<TextView>(R.id.previewText)
         val productInfo = content.findViewById<TextView>(R.id.selectedProductInfo)
         val newFields = content.findViewById<LinearLayout>(R.id.newProductFields)
 
-        val products = db.products()
+        val products = db.products().toMutableList()
         val adapter = SuggestionAdapter(activity, products, db.recentProductIds())
+        var suppressSuggestion = false
         adapter.showInitial()
-        productInput.setAdapter(adapter)
-        productInput.threshold = 0
-        productInput.post {
-            val edge = TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 2f, activity.resources.displayMetrics
-            ).toInt()
-            productInput.dropDownWidth =
-                (activity.resources.displayMetrics.widthPixels - 2 * edge).coerceAtLeast(1)
+        suggestions.adapter = adapter
+        suggestions.setOnItemClickListener { _, _, position, _ ->
+            suppressSuggestion = true
+            productInput.setText(adapter.getItem(position)?.product?.name ?: "")
+            suppressSuggestion = false
+            suggestions.visibility = View.GONE
         }
-        val maxDrop = (activity.resources.displayMetrics.heightPixels * 0.5f).toInt()
-        productInput.dropDownHeight = minOf((480f * activity.resources.displayMetrics.density).toInt(), maxDrop)
 
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -382,9 +390,19 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                 } else {
                     ""
                 }
+                if (!suppressSuggestion) {
+                    adapter.filter.filter(productInput.text.toString())
+                    suggestions.visibility = View.VISIBLE
+                }
             }
         }
         productInput.addTextChangedListener(watcher)
+        productInput.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus && !suppressSuggestion) {
+                adapter.filter.filter(productInput.text.toString())
+                suggestions.visibility = View.VISIBLE
+            }
+        }
         weightInput.addTextChangedListener(watcher)
 
         val newKcalInput = content.findViewById<EditText>(R.id.newKcalInput)
@@ -429,11 +447,14 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
                 val name = ProductLabels.nameOf(productInput.text.toString())
                 val grams = parseGrams(weightInput.text.toString())
-                if (name.isBlank() || grams == null) {
-                    toast(activity.getString(R.string.enter_weight))
+                val error = entryValidationError(name, grams)
+                if (error != EntryError.NONE) {
+                    val message = if (error == EntryError.NAME) R.string.enter_product_name else R.string.enter_weight
+                    toast(activity.getString(message))
                     return@setOnClickListener
                 }
 
+                if (grams == null) return@setOnClickListener
                 var product = products.firstOrNull { it.name.equals(name, ignoreCase = true) }
                 if (product == null) {
                     val kcal = readNumber(content, R.id.newKcalInput)

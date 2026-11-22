@@ -6,6 +6,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -61,15 +62,13 @@ class ProfileView(private val activity: Activity) {
         updating = false
 
         val purposes = activity.resources.getStringArray(R.array.scheme_purposes)
-        val schemeLabels = MACRO_SCHEMES.mapIndexed { index, scheme ->
-            activity.getString(
-                R.string.scheme_label,
-                scheme.name, scheme.proteinPct, scheme.fatPct, scheme.carbsPct, purposes[index]
+        val schemeOptions = MACRO_SCHEMES.mapIndexed { index, scheme ->
+            SchemeOption(
+                activity.getString(R.string.scheme_title, scheme.name, purposes[index]),
+                activity.getString(R.string.scheme_details, scheme.proteinPct, scheme.fatPct, scheme.carbsPct)
             )
         }
-        schemeSpinner.adapter = ArrayAdapter(
-            activity, android.R.layout.simple_spinner_dropdown_item, schemeLabels
-        )
+        schemeSpinner.adapter = SchemeAdapter(activity, schemeOptions)
         profileSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {}
@@ -224,6 +223,20 @@ class ProfileView(private val activity: Activity) {
         if (raw.isBlank()) return null
         val value = raw.replace(',', '.').toDoubleOrNull() ?: return null
         return if (value > 0.0) value else null
+    }
+
+    private class SchemeAdapter(
+        activity: Activity,
+        private val options: List<SchemeOption>
+    ) : ArrayAdapter<SchemeOption>(activity, R.layout.item_scheme, options) {
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val row = convertView ?: LayoutInflater.from(context)
+                .inflate(R.layout.item_scheme, parent, false)
+            val option = getItem(position) ?: return row
+            row.findViewById<TextView>(R.id.schemeTitle).text = option.title
+            row.findViewById<TextView>(R.id.schemeDetails).text = option.details
+            return row
+        }
     }
 
     companion object {

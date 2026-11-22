@@ -242,6 +242,19 @@ class CalculationTest {
     }
 
     @Test
+    fun unnamedDraftGetsStableTitle() {
+        assertEquals("Блюдо без названия 2", draftTitle("", 2))
+        assertEquals("Суп", draftTitle("Суп", 2))
+    }
+
+    @Test
+    fun entryValidationReportsMissingNameBeforeWeight() {
+        assertEquals(EntryError.NAME, entryValidationError("", null))
+        assertEquals(EntryError.WEIGHT, entryValidationError("Молоко", null))
+        assertEquals(EntryError.NONE, entryValidationError("Молоко", 100.0))
+    }
+
+    @Test
     fun tenMacroSchemesAreBalanced() {
         assertEquals(10, MACRO_SCHEMES.size)
         assertTrue(MACRO_SCHEMES.all { it.proteinPct + it.fatPct + it.carbsPct == 100 })

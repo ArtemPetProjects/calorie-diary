@@ -69,6 +69,17 @@ fun autoFilledKcal(
     return kcalFromMacros(protein, fat, carbs)
 }
 
+fun draftTitle(name: String, index: Int): String =
+    name.ifBlank { "Блюдо без названия $index" }
+
+enum class EntryError { NONE, NAME, WEIGHT }
+
+fun entryValidationError(name: String, grams: Double?): EntryError = when {
+    name.isBlank() -> EntryError.NAME
+    grams == null -> EntryError.WEIGHT
+    else -> EntryError.NONE
+}
+
 // Пустые поля БЖУ сохраняются как нули, но ручная калорийность сохраняется.
 fun productNutrients(kcal: Double, protein: Double?, fat: Double?, carbs: Double?): Nutrients =
     Nutrients(kcal, protein ?: 0.0, fat ?: 0.0, carbs ?: 0.0)

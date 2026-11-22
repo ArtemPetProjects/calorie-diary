@@ -27,6 +27,12 @@
             android:layout_height="wrap_content"
             android:text="@string/add_ingredient" />
 
+        <Button style="@style/AppButton"
+            android:id="@+id/createProductButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/create_product_from_dish" />
+
         <EditText
             android:id="@+id/finalWeightInput"
             android:layout_width="match_parent"
