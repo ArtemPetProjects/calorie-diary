@@ -78,6 +78,8 @@
     <string name="add_custom_scheme">Создать свою схему</string>
     <string name="delete_custom_scheme">Удалить свою схему</string>
     <string name="invalid_scheme_percent">Белки, жиры и углеводы должны давать 100%</string>
+    <string name="scheme_own_purpose">Расчёт по весу тела</string>
+    <string name="scheme_ratio_short">Б %1$d%% / Ж %2$d%% / У %3$d%%</string>
     <string-array name="scheme_purposes">
         <item>базовый сбалансированный рацион по ВОЗ</item>
         <item>середины рекомендуемых диапазонов IOM</item>

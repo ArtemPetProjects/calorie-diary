@@ -32,7 +32,7 @@ data class Profile(val id: Long, val name: String, val bodyKg: Double)
 
 data class SchemeOption(val title: String, val details: String)
 
-data class SchemeEntry(val key: String, val title: String, val details: String)
+data class SchemeEntry(val key: String, val title: String, val details: String, val ratio: String)
 
 data class CustomScheme(
     val id: Long,

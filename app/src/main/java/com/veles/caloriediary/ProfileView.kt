@@ -210,6 +210,7 @@ class ProfileView(private val activity: Activity) {
             SchemeEntry(
                 Db.SCHEME_OWN,
                 activity.getString(R.string.scheme_own_title),
+                activity.getString(R.string.scheme_own_purpose),
                 activity.getString(R.string.scheme_own_details)
             )
         )
@@ -217,9 +218,8 @@ class ProfileView(private val activity: Activity) {
             entries.add(
                 SchemeEntry(
                     "builtin:$index",
-                    activity.getString(
-                        R.string.scheme_title, scheme.name, purposes.getOrElse(index) { "" }
-                    ),
+                    scheme.name,
+                    purposes.getOrElse(index) { "" },
                     activity.getString(
                         R.string.scheme_details, scheme.proteinPct, scheme.fatPct, scheme.carbsPct
                     )
@@ -231,7 +231,11 @@ class ProfileView(private val activity: Activity) {
                 SchemeEntry(
                     "custom:${scheme.id}",
                     scheme.name,
-                    scheme.purpose.ifBlank { "Б ${scheme.proteinPct}% / Ж ${scheme.fatPct}% / У ${scheme.carbsPct}%" }
+                    scheme.purpose,
+                    activity.getString(
+                        R.string.scheme_ratio_short,
+                        scheme.proteinPct, scheme.fatPct, scheme.carbsPct
+                    )
                 )
             )
         }
@@ -295,20 +299,20 @@ class ProfileView(private val activity: Activity) {
     }
 
     private fun showSchemeDialog() {
-        val entries = schemeEntries()
-        val labels = entries.map { it.title }.toMutableList()
-        labels.add(activity.getString(R.string.add_custom_scheme))
+        val entries = schemeEntries() + SchemeEntry(
+            "__add", activity.getString(R.string.add_custom_scheme), "", ""
+        )
         val current = db.schemeForProfile()
         val checked = entries.indexOfFirst { it.key == current }.coerceAtLeast(0)
         AlertDialog.Builder(activity)
             .setTitle(R.string.choose_scheme)
-            .setSingleChoiceItems(labels.toTypedArray(), checked) { dialog, which ->
+            .setSingleChoiceItems(SchemeChoiceAdapter(activity, entries), checked) { dialog, which ->
                 dialog.dismiss()
-                if (which == entries.size) {
+                val entry = entries.getOrNull(which) ?: return@setSingleChoiceItems
+                if (entry.key == "__add") {
                     showCreateSchemeDialog()
                     return@setSingleChoiceItems
                 }
-                val entry = entries[which]
                 db.saveScheme(entry.key)
                 applySchemeEntry(entry)
                 updateSchemeButton()
@@ -347,7 +351,7 @@ class ProfileView(private val activity: Activity) {
                         if (id > 0) {
                             val key = "custom:$id"
                             db.saveScheme(key)
-                            applySchemeEntry(SchemeEntry(key, name, ""))
+                            applySchemeEntry(SchemeEntry(key, name, "", ""))
                             updateSchemeButton()
                             dismiss()
                         }
@@ -355,6 +359,21 @@ class ProfileView(private val activity: Activity) {
                 }
                 show()
             }
+    }
+
+    private class SchemeChoiceAdapter(
+        activity: Activity,
+        private val entries: List<SchemeEntry>
+    ) : ArrayAdapter<SchemeEntry>(activity, R.layout.item_scheme_choice, entries) {
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val row = convertView ?: LayoutInflater.from(context)
+                .inflate(R.layout.item_scheme_choice, parent, false)
+            val entry = getItem(position) ?: return row
+            row.findViewById<TextView>(R.id.schemeChoiceTitle).text = entry.title
+            row.findViewById<TextView>(R.id.schemeChoicePurpose).text = entry.details
+            row.findViewById<TextView>(R.id.schemeChoiceRatio).text = entry.ratio
+            return row
+        }
     }
 
     companion object {
