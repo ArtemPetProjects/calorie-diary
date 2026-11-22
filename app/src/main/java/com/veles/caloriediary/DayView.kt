@@ -51,9 +51,15 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         view.findViewById<Button>(R.id.addDishButton).setOnClickListener { openDishDialog() }
         continueDishButton.setOnClickListener { openDishDialog(draft = true) }
         continueDishButton.setOnLongClickListener {
-            db.clearDraft()
-            Toast.makeText(activity, R.string.draft_deleted, Toast.LENGTH_SHORT).show()
-            refresh()
+            android.app.AlertDialog.Builder(activity)
+                .setMessage(R.string.delete_draft_confirm)
+                .setPositiveButton(R.string.delete) { _, _ ->
+                    db.clearDraft()
+                    Toast.makeText(activity, R.string.draft_deleted, Toast.LENGTH_SHORT).show()
+                    refresh()
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
             true
         }
         refresh()
@@ -297,11 +303,13 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         val newFields = content.findViewById<LinearLayout>(R.id.newProductFields)
 
         val products = db.products()
-        productInput.setAdapter(SuggestionAdapter(activity, products, db.recentProductIds()))
+        val adapter = SuggestionAdapter(activity, products, db.recentProductIds())
+        adapter.showInitial()
+        productInput.setAdapter(adapter)
         productInput.threshold = 0
         productInput.dropDownWidth = ViewGroup.LayoutParams.MATCH_PARENT
-        productInput.dropDownHeight =
-            (480f * activity.resources.displayMetrics.density).toInt()
+        val maxDrop = (activity.resources.displayMetrics.heightPixels * 0.5f).toInt()
+        productInput.dropDownHeight = minOf((480f * activity.resources.displayMetrics.density).toInt(), maxDrop)
 
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -345,9 +353,8 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.WRAP_CONTENT
         )
-        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
-
         dialog.setOnShowListener {
+            dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
             productInput.requestFocus()
             productInput.post { productInput.showDropDown() }
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {

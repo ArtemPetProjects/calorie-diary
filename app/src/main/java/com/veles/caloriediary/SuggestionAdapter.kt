@@ -16,15 +16,14 @@ data class Suggestion(val product: Product) {
 class SuggestionAdapter(
     activity: Activity,
     products: List<Product>,
-    private val recentIds: Set<Long> = emptySet()
+    private val recentIds: List<Long> = emptyList()
 ) : ArrayAdapter<Suggestion>(activity, R.layout.item_suggestion, products.map { Suggestion(it) }) {
 
     private val all = products.map { Suggestion(it) }
-    private val byName = all.associateBy { it.product.name.lowercase(Locale.getDefault()) }
-    private val recentNames = products
-        .filter { it.id in recentIds }
-        .map { it.name.lowercase(Locale.getDefault()) }
-        .toSet()
+    private val byName = all.associateBy { it.product.name.lowercase() }
+    private val productsById = products.associateBy { it.id }
+    // Порядок recentIds — это порядок used_at DESC из БД; сохраняем его в списке.
+    private val recentNames = recentIds.mapNotNull { productsById[it]?.name?.lowercase() }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val row = convertView ?: LayoutInflater.from(context)
@@ -38,13 +37,21 @@ class SuggestionAdapter(
         return row
     }
 
+    private fun rankedList(query: String): List<Suggestion> {
+        val ranked = rankProductNamesWithRecent(all.map { it.product.name }, query, recentNames)
+        return ranked.mapNotNull { byName[it.lowercase()] }.take(50)
+    }
+
+    // Первый экран списка: сразу недавние продукты в порядке использования.
+    fun showInitial() {
+        clear()
+        addAll(rankedList(""))
+        notifyDataSetChanged()
+    }
+
     override fun getFilter(): Filter = object : Filter() {
         override fun performFiltering(constraint: CharSequence?): FilterResults {
-            val query = constraint?.toString() ?: ""
-            val names = all.map { it.product.name }
-            val ranked = rankProductNamesWithRecent(names, query, recentNames)
-            val list = ranked.mapNotNull { byName[it.lowercase(Locale.getDefault())] }
-                .take(50)
+            val list = rankedList(constraint?.toString() ?: "")
             return FilterResults().apply {
                 values = list
                 count = list.size

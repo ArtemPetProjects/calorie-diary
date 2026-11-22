@@ -158,10 +158,19 @@ class CalculationTest {
     fun recentlyUsedProductsGoFirst() {
         val names = listOf("Слива", "Булка со сливой", "Яблоко", "Сливы сушёные")
         val ranked = rankProductNamesWithRecent(
-            names, "сли", setOf("булка со сливой")
+            names, "сли", listOf("булка со сливой")
         )
         assertEquals("Булка со сливой", ranked.first())
         assertEquals(3, ranked.size)
+    }
+
+    @Test
+    fun recentProductsFollowUsageOrderEvenForEmptyQuery() {
+        val names = listOf("Банан", "Молоко", "Хурма", "Яблоко")
+        val ranked = rankProductNamesWithRecent(
+            names, "", listOf("хурма", "молоко")
+        )
+        assertEquals(listOf("Хурма", "Молоко", "Банан", "Яблоко"), ranked)
     }
 
     @Test

@@ -98,16 +98,28 @@ fun rankProductNames(names: List<String>, query: String): List<String> {
         names.indices.filter { !lowered[it].startsWith(q) && lowered[it].contains(q) }.map { names[it] }
 }
 
+// Недавние продукты идут первыми строго в порядке использования — даже при пустом запросе.
 fun rankProductNamesWithRecent(
     names: List<String>,
     query: String,
-    recent: Set<String>
+    recent: Collection<String>
 ): List<String> {
     val ranked = rankProductNames(names, query)
-    if (query.isBlank() || recent.isEmpty()) return ranked
-    val loweredRecent = recent.map { it.lowercase() }.toSet()
-    return ranked.filter { it.lowercase() in loweredRecent } +
-        ranked.filter { it.lowercase() !in loweredRecent }
+    if (recent.isEmpty()) return ranked
+    val usageOrder = LinkedHashMap<String, Int>()
+    recent.forEachIndexed { index, name -> usageOrder.putIfAbsent(name.lowercase(), index) }
+    val q = query.trim().lowercase()
+    val recentNames = mutableListOf<String>()
+    val otherStarts = mutableListOf<String>()
+    val otherContains = mutableListOf<String>()
+    for (name in ranked) {
+        when {
+            usageOrder.containsKey(name.lowercase()) -> recentNames.add(name)
+            q.isBlank() || name.lowercase().startsWith(q) -> otherStarts.add(name)
+            else -> otherContains.add(name)
+        }
+    }
+    return recentNames.sortedBy { usageOrder[it.lowercase()] } + otherStarts + otherContains
 }
 
 fun rescale(values: Nutrients, fromGrams: Double, toGrams: Double): Nutrients? {

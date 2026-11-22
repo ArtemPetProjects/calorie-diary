@@ -104,6 +104,7 @@ class DishDialog(
         private val info: TextView = view.findViewById(R.id.ingredientInfo)
 
         init {
+            adapter.showInitial()
             productInput.setAdapter(adapter)
             val watcher = object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}

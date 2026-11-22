@@ -284,8 +284,9 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
                         put("grams", item.grams)
                         putNutrients(this, item.per100)
                     }
-                    writableDatabase.insert("dish_items", null, iv)
-                    markUsed(item.productId)
+                    if (writableDatabase.insert("dish_items", null, iv) > 0L) {
+                        markUsed(item.productId)
+                    }
                 }
             }
             writableDatabase.setTransactionSuccessful()
@@ -354,7 +355,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             put("created_at", if (e.createdAt > 0L) e.createdAt else System.currentTimeMillis())
         }
         val id = writableDatabase.insert("entries", null, values)
-        markUsed(e.productId)
+        if (id > 0L) markUsed(e.productId)
         return id
     }
 
@@ -426,12 +427,12 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         )
     }
 
-    fun recentProductIds(): Set<Long> {
+    fun recentProductIds(): List<Long> {
         val cursor = readableDatabase.query(
             "product_usage", arrayOf("product_id"), null, null, null, null, "used_at DESC"
         )
         return cursor.use { c ->
-            val result = mutableSetOf<Long>()
+            val result = mutableListOf<Long>()
             while (c.moveToNext()) result.add(c.getLong(0))
             result
         }

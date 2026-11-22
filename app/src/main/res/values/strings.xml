@@ -65,4 +65,5 @@
     <string name="continue_dish">Продолжить создание блюда</string>
     <string name="draft_saved">Черновик сохранён</string>
     <string name="draft_deleted">Черновик удалён</string>
+    <string name="delete_draft_confirm">Удалить отложенное блюдо?</string>
 </resources>
