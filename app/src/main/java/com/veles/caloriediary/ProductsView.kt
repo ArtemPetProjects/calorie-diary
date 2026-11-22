@@ -181,7 +181,7 @@ class ProductsView(private val activity: Activity) {
                 val protein = readNumber(proteinInput)
                 val fat = readNumber(fatInput)
                 val carbs = readNumber(carbsInput)
-                if (name.isBlank() || kcal == null || protein == null || fat == null || carbs == null) {
+                if (name.isBlank() || kcal == null) {
                     Toast.makeText(activity, R.string.fill_targets, Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
@@ -191,7 +191,7 @@ class ProductsView(private val activity: Activity) {
                         Product(
                             id = id,
                             name = name,
-                            per100 = Nutrients(kcal, protein, fat, carbs),
+                            per100 = productNutrients(kcal, protein, fat, carbs),
                             finalGrams = product?.finalGrams ?: 0.0,
                             isDish = product?.isDish ?: false,
                             isCustom = true

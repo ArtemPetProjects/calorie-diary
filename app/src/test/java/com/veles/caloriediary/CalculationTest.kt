@@ -239,4 +239,13 @@ class CalculationTest {
     fun allZeroMacrosKeepManualKcal() {
         assertNull(autoFilledKcal(true, "235", 0.0, 0.0, 0.0))
     }
+
+    @Test
+    fun emptyMacrosBecomeZero() {
+        val n = productNutrients(235.0, null, null, null)
+        assertEquals(235.0, n.kcal, 0.01)
+        assertEquals(0.0, n.protein, 0.01)
+        assertEquals(0.0, n.fat, 0.01)
+        assertEquals(0.0, n.carbs, 0.01)
+    }
 }

@@ -63,6 +63,10 @@ fun autoFilledKcal(
     return kcalFromMacros(protein, fat, carbs)
 }
 
+// Пустые поля БЖУ сохраняются как нули, но ручная калорийность сохраняется.
+fun productNutrients(kcal: Double, protein: Double?, fat: Double?, carbs: Double?): Nutrients =
+    Nutrients(kcal, protein ?: 0.0, fat ?: 0.0, carbs ?: 0.0)
+
 fun gramsFromScheme(kcal: Double, scheme: MacroScheme): Targets = Targets(
     kcal = kcal,
     protein = round1(kcal * scheme.proteinPct / 100.0 / 4.0),

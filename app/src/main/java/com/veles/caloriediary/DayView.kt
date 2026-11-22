@@ -419,11 +419,11 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                     val protein = readNumber(content, R.id.newProteinInput)
                     val fat = readNumber(content, R.id.newFatInput)
                     val carbs = readNumber(content, R.id.newCarbsInput)
-                    if (kcal == null || protein == null || fat == null || carbs == null) {
+                    if (kcal == null) {
                         toast(activity.getString(R.string.fill_targets))
                         return@setOnClickListener
                     }
-                    val id = db.saveProduct(Product(0, name, Nutrients(kcal, protein, fat, carbs)))
+                    val id = db.saveProduct(Product(0, name, productNutrients(kcal, protein, fat, carbs)))
                     if (id < 0) {
                         toast(activity.getString(R.string.duplicate_product))
                         return@setOnClickListener
