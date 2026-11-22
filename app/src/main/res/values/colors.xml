@@ -19,4 +19,5 @@
     <color name="background">@color/light_bg</color>
     <color name="text_primary">@color/light_text</color>
     <color name="accent">@color/accent_light</color>
+    <color name="ic_launcher_background">#F5A623</color>
 </resources>

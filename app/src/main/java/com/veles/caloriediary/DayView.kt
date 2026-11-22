@@ -104,21 +104,23 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
                 ).apply { setMargins(0, 8, 0, 0) }
             }
-            val header = TextView(activity)
-            header.text = if (group.startMs <= 0L) {
+            val collapsed = collapsedMeals[group.startMs] ?: false
+            val baseText = if (group.startMs <= 0L) {
                 activity.getString(R.string.meal_unknown)
             } else {
                 val kcal = sum(group.entries.map { it.values }).kcal
                 activity.getString(R.string.meal_time, timeFormat.format(Date(group.startMs)), fmt(kcal))
             }
+            val header = TextView(activity)
+            header.text = (if (collapsed) "▶ " else "▼ ") + baseText
             header.textSize = 14f
             val items = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-            val collapsed = collapsedMeals[group.startMs] ?: false
             items.visibility = if (collapsed) View.GONE else View.VISIBLE
             header.setOnClickListener {
                 val next = !(collapsedMeals[group.startMs] ?: false)
                 collapsedMeals[group.startMs] = next
                 items.visibility = if (next) View.GONE else View.VISIBLE
+                header.text = (if (next) "▶ " else "▼ ") + baseText
             }
             box.addView(header)
             box.addView(items)
