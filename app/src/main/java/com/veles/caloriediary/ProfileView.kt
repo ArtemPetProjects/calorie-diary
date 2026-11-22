@@ -20,6 +20,7 @@ class ProfileView(private val activity: Activity) {
     private val proteinInput: EditText = view.findViewById(R.id.targetProteinInput)
     private val fatInput: EditText = view.findViewById(R.id.targetFatInput)
     private val carbsInput: EditText = view.findViewById(R.id.targetCarbsInput)
+    private val weightInput: EditText = view.findViewById(R.id.weightInput)
     private val schemeHint: TextView = view.findViewById(R.id.schemeHint)
     private val schemeButtons = listOf(
         view.findViewById<Button>(R.id.scheme0),
@@ -66,6 +67,32 @@ class ProfileView(private val activity: Activity) {
         darkSwitch.setOnCheckedChangeListener { _, checked ->
             prefs.edit().putBoolean(MainActivity.KEY_DARK, checked).apply()
             activity.recreate()
+        }
+
+        val savedWeight = prefs.getFloat(KEY_WEIGHT, 0f)
+        if (savedWeight > 0f) weightInput.setText(fmt(savedWeight.toDouble()))
+
+        view.findViewById<Button>(R.id.mySchemeButton).setOnClickListener {
+            val weight = readNumber(weightInput)
+            val kcal = readNumber(kcalInput)
+            if (weight == null || kcal == null) {
+                Toast.makeText(activity, R.string.fill_targets, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val targets = weightScheme(weight, kcal)
+            if (targets == null) {
+                Toast.makeText(activity, R.string.fill_targets, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            updating = true
+            kcalInput.setText(fmt(targets.kcal))
+            proteinInput.setText(fmt(targets.protein))
+            fatInput.setText(fmt(targets.fat))
+            carbsInput.setText(fmt(targets.carbs))
+            updating = false
+            prefs.edit().putFloat(KEY_WEIGHT, weight.toFloat()).apply()
+            db.saveTargets(targets)
+            Toast.makeText(activity, R.string.targets_saved, Toast.LENGTH_SHORT).show()
         }
 
         view.findViewById<Button>(R.id.saveTargetsButton).setOnClickListener {
@@ -116,5 +143,9 @@ class ProfileView(private val activity: Activity) {
         if (raw.isBlank()) return null
         val value = raw.replace(',', '.').toDoubleOrNull() ?: return null
         return if (value > 0.0) value else null
+    }
+
+    companion object {
+        private const val KEY_WEIGHT = "body_weight"
     }
 }
