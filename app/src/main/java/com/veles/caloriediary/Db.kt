@@ -182,7 +182,10 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             "INSERT OR IGNORE INTO products (name, search_name, kcal, protein, fat, carbs) " +
                 "VALUES (?, ?, ?, ?, ?, ?)"
         )
-        db.beginTransaction()
+        // onUpgrade уже выполняется в транзакции SQLiteOpenHelper: вложенная транзакция
+        // выбросит исключение и сорвёт обновление. Импорт работает в обоих режимах.
+        val ownTransaction = !db.inTransaction()
+        if (ownTransaction) db.beginTransaction()
         try {
             for (i in 0 until array.length()) {
                 val item = array.getJSONObject(i)
@@ -196,9 +199,9 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
                 statement.executeInsert()
                 statement.clearBindings()
             }
-            db.setTransactionSuccessful()
+            if (ownTransaction) db.setTransactionSuccessful()
         } finally {
-            db.endTransaction()
+            if (ownTransaction) db.endTransaction()
             statement.close()
         }
     }
