@@ -50,6 +50,28 @@ class CalculationTest {
     }
 
     @Test
+    fun dishPer100ScalesToFinalWeight() {
+        val items = listOf(
+            DishIngredient(1, "Молоко", 200.0, Nutrients(60.0, 3.0, 3.2, 4.7)),
+            DishIngredient(2, "Рис", 100.0, Nutrients(116.0, 2.6, 0.3, 25.0))
+        )
+        val r = dishPer100(items, 150.0)!!
+        assertEquals(157.3, r.kcal, 0.05)
+    }
+
+    @Test
+    fun dishPer100RejectsNonPositiveFinalWeight() {
+        val item = DishIngredient(1, "Молоко", 100.0, Nutrients(60.0, 3.0, 3.2, 4.7))
+        assertNull(dishPer100(listOf(item), 0.0))
+        assertNull(dishPer100(listOf(item), -5.0))
+    }
+
+    @Test
+    fun dishPer100RejectsEmptyIngredients() {
+        assertNull(dishPer100(emptyList(), 200.0))
+    }
+
+    @Test
     fun weekDatesCrossesMonthAndLeapDay() {
         assertEquals(
             listOf(

@@ -22,6 +22,19 @@ fun sum(items: List<Nutrients>): Nutrients = Nutrients(
     carbs = round1(items.sumOf { it.carbs })
 )
 
+// Итог блюда делится на вес готового блюда, который отличается от суммы ингредиентов.
+fun dishPer100(items: List<DishIngredient>, finalGrams: Double): Nutrients? {
+    if (items.isEmpty() || finalGrams <= 0.0) return null
+    val total = sum(items.map { forWeight(it.per100, it.grams) })
+    val k = 100.0 / finalGrams
+    return Nutrients(
+        kcal = round1(total.kcal * k),
+        protein = round1(total.protein * k),
+        fat = round1(total.fat * k),
+        carbs = round1(total.carbs * k)
+    )
+}
+
 fun parseGrams(raw: String): Double? {
     val value = raw.trim().replace(',', '.').toDoubleOrNull() ?: return null
     return if (value > 0.0) value else null
