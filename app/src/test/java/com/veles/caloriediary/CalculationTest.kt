@@ -228,4 +228,15 @@ class CalculationTest {
         assertEquals(25, progressPercent(50.0, 200.0))
         assertEquals(100, progressPercent(250.0, 200.0))
     }
+
+    @Test
+    fun macroEditingRecalculatesKcalImmediately() {
+        assertEquals(4.0, autoFilledKcal(true, "", 0.0, 0.0, 1.0))
+        assertEquals(40.0, autoFilledKcal(true, "4.0", 0.0, 0.0, 10.0))
+    }
+
+    @Test
+    fun allZeroMacrosKeepManualKcal() {
+        assertNull(autoFilledKcal(true, "235", 0.0, 0.0, 0.0))
+    }
 }

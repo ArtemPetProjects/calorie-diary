@@ -58,6 +58,8 @@ fun autoFilledKcal(
 ): Double? {
     if (protein == null || fat == null || carbs == null) return null
     if (!autoFilled && current.isNotBlank()) return null
+    // Нулевой БЖУ при ручной калорийности — алкоголь; не обнуляем его при вводе.
+    if (protein == 0.0 && fat == 0.0 && carbs == 0.0 && current.isNotBlank()) return null
     return kcalFromMacros(protein, fat, carbs)
 }
 

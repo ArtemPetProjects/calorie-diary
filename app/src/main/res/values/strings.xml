@@ -68,4 +68,5 @@
     <string name="delete_draft_confirm">Удалить отложенное блюдо?</string>
     <string name="edit">Изменить</string>
     <string name="progress_value">%1$s / %2$s · %3$d%% · осталось %4$s</string>
+    <string name="entry_details">%1$s г • %2$s ккал • Б %3$s / Ж %4$s / У %5$s</string>
 </resources>

@@ -79,7 +79,7 @@ class ProductsView(private val activity: Activity) {
 
     private inner class ProductAdapter(
         private val items: List<Product>,
-        private val recentDishIds: Set<Long>
+        private val recentIds: Set<Long>
     ) : BaseAdapter() {
         override fun getCount() = items.size
         override fun getItem(position: Int): Product = items[position]
@@ -107,7 +107,7 @@ class ProductsView(private val activity: Activity) {
             val normalColor = attrs.getColor(1, Color.parseColor("#212121"))
             attrs.recycle()
             nameView.setTextColor(
-                if (product.isDish && product.id in recentDishIds) recentColor else normalColor
+                if (product.id in recentIds) recentColor else normalColor
             )
             row.findViewById<Button>(R.id.editProductButton).setOnClickListener {
                 openEditor(product)
@@ -142,7 +142,6 @@ class ProductsView(private val activity: Activity) {
             carbsInput.setText(fmt(product.per100.carbs))
         }
 
-        var autoKcal = product == null
         var updatingKcal = false
         val macroWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -150,7 +149,7 @@ class ProductsView(private val activity: Activity) {
             override fun afterTextChanged(s: Editable?) {
                 if (updatingKcal) return
                 val value = autoFilledKcal(
-                    autoKcal,
+                    true,
                     kcalInput.text.toString(),
                     readNumber(proteinInput),
                     readNumber(fatInput),
@@ -166,14 +165,6 @@ class ProductsView(private val activity: Activity) {
         proteinInput.addTextChangedListener(macroWatcher)
         fatInput.addTextChangedListener(macroWatcher)
         carbsInput.addTextChangedListener(macroWatcher)
-        kcalInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                if (!updatingKcal) autoKcal = false
-            }
-        })
-
         val title = if (product == null) R.string.add_product else R.string.product_name
         val dialog = AlertDialog.Builder(activity)
             .setTitle(title)

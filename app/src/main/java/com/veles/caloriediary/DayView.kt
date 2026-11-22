@@ -146,10 +146,10 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             for (entry in group.entries) {
                 val row = LayoutInflater.from(activity)
                     .inflate(R.layout.item_entry, entryList, false)
-                row.findViewById<TextView>(R.id.entryText).text =
-                    "${entry.productName} • ${fmt(entry.grams)} г • ${fmt(entry.values.kcal)} ккал"
+                row.findViewById<TextView>(R.id.entryText).text = entry.productName
                 row.findViewById<TextView>(R.id.entryMacros).text = activity.getString(
-                    R.string.entry_macros,
+                    R.string.entry_details,
+                    fmt(entry.grams), fmt(entry.values.kcal),
                     fmt(entry.values.protein), fmt(entry.values.fat), fmt(entry.values.carbs)
                 )
                 row.setOnClickListener { openEditWeightDialog(entry) }
@@ -185,6 +185,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             .setPositiveButton(R.string.save, null)
             .setNegativeButton(R.string.cancel, null)
             .create()
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
         dialog.setOnShowListener {
             dialog.focusAndShowKeyboard(input, selectAll = true)
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
@@ -348,7 +349,6 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         weightInput.addTextChangedListener(watcher)
 
         val newKcalInput = content.findViewById<EditText>(R.id.newKcalInput)
-        var newAutoKcal = true
         var updatingNewKcal = false
         val newMacroWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -356,7 +356,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             override fun afterTextChanged(s: Editable?) {
                 if (updatingNewKcal) return
                 val value = autoFilledKcal(
-                    newAutoKcal,
+                    true,
                     newKcalInput.text.toString(),
                     readNumber(content, R.id.newProteinInput),
                     readNumber(content, R.id.newFatInput),
@@ -372,14 +372,6 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         content.findViewById<EditText>(R.id.newProteinInput).addTextChangedListener(newMacroWatcher)
         content.findViewById<EditText>(R.id.newFatInput).addTextChangedListener(newMacroWatcher)
         content.findViewById<EditText>(R.id.newCarbsInput).addTextChangedListener(newMacroWatcher)
-        newKcalInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                if (!updatingNewKcal) newAutoKcal = false
-            }
-        })
-
         val dialog = android.app.AlertDialog.Builder(activity)
             .setTitle(R.string.add_product)
             .setView(content)
