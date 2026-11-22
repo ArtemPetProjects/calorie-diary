@@ -6,6 +6,12 @@
         <item name="android:textColorPrimary">@color/light_text</item>
         <item name="android:textColorSecondary">@color/light_secondary</item>
         <item name="android:colorAccent">@color/accent_light</item>
+        <item name="buttonBg">@drawable/rounded_button_light</item>
+        <item name="progressTrack">@color/track_light</item>
+        <item name="progressKcal">@color/kcal_color</item>
+        <item name="progressProtein">@color/protein_color</item>
+        <item name="progressFat">@color/fat_color</item>
+        <item name="progressCarbs">@color/carbs_color</item>
     </style>
 
     <style name="AppTheme.Dark" parent="@android:style/Theme.Material">
@@ -13,6 +19,21 @@
         <item name="android:textColorPrimary">@color/dark_text</item>
         <item name="android:textColorSecondary">@color/dark_secondary</item>
         <item name="android:colorAccent">@color/accent_dark</item>
+        <item name="buttonBg">@drawable/rounded_button_dark</item>
+        <item name="progressTrack">@color/track_dark</item>
+        <item name="progressKcal">@color/kcal_color</item>
+        <item name="progressProtein">@color/protein_color</item>
+        <item name="progressFat">@color/fat_color</item>
+        <item name="progressCarbs">@color/carbs_color</item>
+    </style>
+
+    <style name="AppButton" parent="@android:style/Widget.Material.Button">
+        <item name="android:background">?attr/buttonBg</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
     </style>
 
 </resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="buttonBg" format="reference" />
+    <attr name="progressTrack" format="color" />
+    <attr name="progressKcal" format="color" />
+    <attr name="progressProtein" format="color" />
+    <attr name="progressFat" format="color" />
+    <attr name="progressCarbs" format="color" />
+</resources>

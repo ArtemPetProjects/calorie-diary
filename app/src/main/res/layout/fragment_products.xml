@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <Button
+        <Button style="@style/AppButton"
             android:id="@+id/filterAll"
             android:layout_width="0dp"
             android:layout_weight="1"
@@ -24,7 +24,7 @@
             android:minWidth="0dp"
             android:text="@string/all" />
 
-        <Button
+        <Button style="@style/AppButton"
             android:id="@+id/filterMine"
             android:layout_width="0dp"
             android:layout_weight="1"
@@ -32,7 +32,7 @@
             android:minWidth="0dp"
             android:text="@string/my_products" />
 
-        <Button
+        <Button style="@style/AppButton"
             android:id="@+id/filterDishes"
             android:layout_width="0dp"
             android:layout_weight="1"
@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <Button
+        <Button style="@style/AppButton"
             android:id="@+id/addProductButton"
             android:layout_width="0dp"
             android:layout_weight="1"
@@ -54,7 +54,7 @@
             android:minWidth="0dp"
             android:text="@string/add_product" />
 
-        <Button
+        <Button style="@style/AppButton"
             android:id="@+id/addDishButton"
             android:layout_width="0dp"
             android:layout_weight="1"
