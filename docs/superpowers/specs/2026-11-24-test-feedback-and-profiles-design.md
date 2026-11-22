@@ -34,9 +34,9 @@
 
 **Выбор пользователя:** одна база, таблица `profiles`, `profile_id` в данных.
 
-- `profiles (_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL)`, при миграции создаётся профиль id=1 «Мой профиль».
+- `profiles (_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, body_kg REAL NOT NULL DEFAULT 0)`, при миграции создаётся профиль id=1 «Мой профиль», а вес тела переносится из старой настройки `body_weight` в `body_kg`.
 - Активный профиль хранится в `SharedPreferences` под ключом `active_profile_id`.
-- Разделяются по профилю: `entries`, `weights`, `targets`, `product_usage`, `dish_drafts`. Каталог продуктов и блюд остаётся общим.
+- Разделяются по профилю: `entries`, `weights`, `targets`, `product_usage`, `dish_drafts` и вес тела в `profiles.body_kg`. Каталог продуктов и блюд остаётся общим.
 - Технически: в `entries` добавляется колонка `profile_id`; таблицы `weights`, `targets`, `product_usage`, `dish_drafts` пересоздаются с составными ключами `(profile_id, ...)` и копированием существующих строк с `profile_id = 1`. Версия БД поднимается до 10; перед обновлением делается резервная копия.
 - Все запросы (`entries`, `weightFor`, `targets`, `recentProductIds`, `markUsed`, черновик) фильтруются по активному профилю.
 - В «Профиле» добавляется список профилей с кнопками «Добавить», «Переключить», «Переименовать», «Удалить». Удаление последнего профиля запрещено; удаление профиля с данными — только после подтверждения и с предупреждением, что его записи, вес и цели будут удалены.
