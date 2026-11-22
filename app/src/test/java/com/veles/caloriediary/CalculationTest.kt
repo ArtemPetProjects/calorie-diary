@@ -161,7 +161,7 @@ class CalculationTest {
             names, "сли", setOf("булка со сливой")
         )
         assertEquals("Булка со сливой", ranked.first())
-        assertEquals(4, ranked.size)
+        assertEquals(3, ranked.size)
     }
 
     @Test

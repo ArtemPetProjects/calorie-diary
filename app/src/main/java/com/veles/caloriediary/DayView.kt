@@ -6,9 +6,11 @@ import android.app.Dialog
 import android.graphics.Color
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
@@ -296,6 +298,10 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
 
         val products = db.products()
         productInput.setAdapter(SuggestionAdapter(activity, products, db.recentProductIds()))
+        productInput.threshold = 0
+        productInput.dropDownWidth = ViewGroup.LayoutParams.MATCH_PARENT
+        productInput.dropDownHeight =
+            (480f * activity.resources.displayMetrics.density).toInt()
 
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -334,7 +340,16 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             .setNegativeButton(R.string.cancel, null)
             .create()
 
+        dialog.window?.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL)
+        dialog.window?.setLayout(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.WRAP_CONTENT
+        )
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+
         dialog.setOnShowListener {
+            productInput.requestFocus()
+            productInput.post { productInput.showDropDown() }
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
                 val name = ProductLabels.nameOf(productInput.text.toString())
                 val grams = parseGrams(weightInput.text.toString())
