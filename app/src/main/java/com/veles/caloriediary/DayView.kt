@@ -265,7 +265,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
     private fun bindBar(barId: Int, valueId: Int, current: Double, target: Double) {
         view.findViewById<ProgressBar>(barId).progress = progress(current, target)
         val percent = progressPercent(current, target)
-        val remaining = maxOf(0.0, target - current)
+        val (over, amount) = excess(current, target)
         val valueView = view.findViewById<TextView>(valueId)
         val colorAttr = when (valueId) {
             R.id.kcalValue -> R.attr.progressKcal
@@ -276,9 +276,11 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         val ta = activity.obtainStyledAttributes(intArrayOf(colorAttr))
         valueView.setTextColor(ta.getColor(0, Color.GRAY))
         ta.recycle()
-        valueView.text = activity.getString(
-            R.string.progress_value, fmt(current), fmt(target), percent, fmt(remaining)
-        )
+        valueView.text = if (over) {
+            activity.getString(R.string.progress_excess, fmt(current), fmt(target), percent, fmt(amount))
+        } else {
+            activity.getString(R.string.progress_value, fmt(current), fmt(target), percent, fmt(amount))
+        }
     }
 
     private fun renderWeek() {

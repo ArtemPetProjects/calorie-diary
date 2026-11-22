@@ -1,6 +1,7 @@
 package com.veles.caloriediary
 
 import java.util.Calendar
+import kotlin.math.abs
 import kotlin.math.round
 
 data class Nutrients(val kcal: Double, val protein: Double, val fat: Double, val carbs: Double)
@@ -176,7 +177,14 @@ fun progress(current: Double, target: Double): Int {
     return ((current / target) * 100.0).toInt().coerceIn(0, 100)
 }
 
-fun progressPercent(current: Double, target: Double): Int = progress(current, target)
+fun progressPercent(current: Double, target: Double): Int {
+    if (target <= 0.0) return 0
+    return ((current / target) * 100.0).toInt().coerceAtLeast(0)
+}
+
+// Признак превышения нормы и величина отклонения по модулю.
+fun excess(current: Double, target: Double): Pair<Boolean, Double> =
+    (current > target) to abs(current - target)
 
 fun dateKey(year: Int, month: Int, day: Int): String =
     "%04d-%02d-%02d".format(year, month, day)

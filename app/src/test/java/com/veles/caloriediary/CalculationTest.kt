@@ -226,7 +226,7 @@ class CalculationTest {
     fun progressPercentHandlesZeroAndOverflow() {
         assertEquals(0, progressPercent(100.0, 0.0))
         assertEquals(25, progressPercent(50.0, 200.0))
-        assertEquals(100, progressPercent(250.0, 200.0))
+        assertEquals(125, progressPercent(250.0, 200.0))
     }
 
     @Test
@@ -238,6 +238,17 @@ class CalculationTest {
     @Test
     fun allZeroMacrosKeepManualKcal() {
         assertNull(autoFilledKcal(true, "235", 0.0, 0.0, 0.0))
+    }
+
+    @Test
+    fun excessIsReportedWhenTargetIsExceeded() {
+        assertEquals(Pair(true, 200.0), excess(2200.0, 2000.0))
+        assertEquals(Pair(false, 200.0), excess(1800.0, 2000.0))
+    }
+
+    @Test
+    fun percentCanExceedHundred() {
+        assertEquals(125, progressPercent(250.0, 200.0))
     }
 
     @Test
