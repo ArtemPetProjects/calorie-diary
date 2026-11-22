@@ -71,6 +71,7 @@
     <string name="entry_details">%1$s г • %2$s ккал • Б %3$s / Ж %4$s / У %5$s</string>
     <string name="default_profile">Мой профиль</string>
     <string name="adjustment_hint">Корректировка нормы, ккал (+/-)</string>
+    <string name="invalid_adjustment">Некорректное значение корректировки</string>
     <string name="progress_excess">%1$s / %2$s · %3$d%% · превышение +%4$s</string>
     <string name="profile_label">Профиль</string>
     <string name="add_profile">Добавить профиль</string>

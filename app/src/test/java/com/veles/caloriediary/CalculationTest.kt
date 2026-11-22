@@ -241,6 +241,24 @@ class CalculationTest {
     }
 
     @Test
+    fun surplusScalesMacros() {
+        val t = adjustTargets(Targets(2000.0, 120.0, 60.0, 250.0), 200.0)
+        assertEquals(2200.0, t.kcal, 0.01)
+        assertEquals(132.0, t.protein, 0.01)
+        assertEquals(66.0, t.fat, 0.01)
+        assertEquals(275.0, t.carbs, 0.01)
+    }
+
+    @Test
+    fun deficitScalesMacros() {
+        val t = adjustTargets(Targets(2000.0, 120.0, 60.0, 250.0), -200.0)
+        assertEquals(1800.0, t.kcal, 0.01)
+        assertEquals(108.0, t.protein, 0.01)
+        assertEquals(54.0, t.fat, 0.01)
+        assertEquals(225.0, t.carbs, 0.01)
+    }
+
+    @Test
     fun emptyMacrosBecomeZero() {
         val n = productNutrients(235.0, null, null, null)
         assertEquals(235.0, n.kcal, 0.01)

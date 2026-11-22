@@ -32,6 +32,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
     private val dayStrip: LinearLayout = view.findViewById(R.id.dayStrip)
     private val entryList: LinearLayout = view.findViewById(R.id.entryList)
     private val weightButton: Button = view.findViewById(R.id.weightButton)
+    private val adjustmentInput: EditText = view.findViewById(R.id.adjustmentInput)
     private val continueDishButton: Button = view.findViewById(R.id.continueDishButton)
     private val collapsedMeals = mutableMapOf<Long, Boolean>()
     private val months = arrayOf(
@@ -49,6 +50,16 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         view.findViewById<Button>(R.id.nextWeek).setOnClickListener { shiftWeek(7) }
         view.findViewById<Button>(R.id.addEntryButton).setOnClickListener { showAddDialog() }
         view.findViewById<Button>(R.id.addDishButton).setOnClickListener { openDishDialog() }
+        view.findViewById<Button>(R.id.saveAdjustmentButton).setOnClickListener {
+            val raw = adjustmentInput.text.toString().trim().replace(',', '.')
+            val delta = if (raw.isEmpty()) 0.0 else raw.toDoubleOrNull()
+            if (delta == null) {
+                toast(activity.getString(R.string.invalid_adjustment))
+                return@setOnClickListener
+            }
+            db.saveAdjustment(selectedDate, delta)
+            refresh()
+        }
         continueDishButton.setOnClickListener { openDishDialog(draft = true) }
         continueDishButton.setOnLongClickListener {
             android.app.AlertDialog.Builder(activity)
@@ -95,7 +106,9 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
 
         val entries = db.entries(selectedDate)
         val totals = sum(entries.map { it.values })
-        val targets = db.targets()
+        val adjustment = db.adjustmentFor(selectedDate)
+        adjustmentInput.setText(if (adjustment == 0.0) "" else fmt(adjustment))
+        val targets = adjustTargets(db.targets(), adjustment)
         bindBar(R.id.kcalBar, R.id.kcalValue, totals.kcal, targets.kcal)
         bindBar(R.id.proteinBar, R.id.proteinValue, totals.protein, targets.protein)
         bindBar(R.id.fatBar, R.id.fatValue, totals.fat, targets.fat)

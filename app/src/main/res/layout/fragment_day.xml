@@ -44,6 +44,21 @@
             android:minHeight="36dp"
             android:textSize="13sp" />
 
+        <EditText
+            android:id="@+id/adjustmentInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/adjustment_hint"
+            android:inputType="numberDecimal|numberSigned" />
+
+        <Button style="@style/AppButton"
+            android:id="@+id/saveAdjustmentButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="36dp"
+            android:textSize="13sp"
+            android:text="@string/save" />
+
         <LinearLayout
             android:id="@+id/dayStrip"
             android:layout_width="match_parent"

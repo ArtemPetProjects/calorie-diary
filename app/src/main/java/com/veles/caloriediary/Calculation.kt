@@ -67,6 +67,20 @@ fun autoFilledKcal(
 fun productNutrients(kcal: Double, protein: Double?, fat: Double?, carbs: Double?): Nutrients =
     Nutrients(kcal, protein ?: 0.0, fat ?: 0.0, carbs ?: 0.0)
 
+// Профицит/дефицит меняет цель по калориям и пропорционально пересчитывает БЖУ.
+fun adjustTargets(targets: Targets, delta: Double): Targets {
+    if (targets.kcal <= 0.0) return targets
+    val newKcal = targets.kcal + delta
+    if (newKcal <= 0.0) return targets
+    val k = newKcal / targets.kcal
+    return Targets(
+        kcal = newKcal,
+        protein = round1(targets.protein * k),
+        fat = round1(targets.fat * k),
+        carbs = round1(targets.carbs * k)
+    )
+}
+
 fun gramsFromScheme(kcal: Double, scheme: MacroScheme): Targets = Targets(
     kcal = kcal,
     protein = round1(kcal * scheme.proteinPct / 100.0 / 4.0),
