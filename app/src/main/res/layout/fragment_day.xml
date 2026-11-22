@@ -143,6 +143,13 @@
             android:layout_height="wrap_content"
             android:text="@string/build_dish" />
 
+        <Button style="@style/AppButton"
+            android:id="@+id/continueDishButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/continue_dish" />
+
         <LinearLayout
             android:id="@+id/entryList"
             android:layout_width="match_parent"

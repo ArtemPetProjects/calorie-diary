@@ -22,6 +22,7 @@ class DishDialog(
     private val db: Db,
     private val dishId: Long = 0L,
     private val showAddToDay: Boolean = true,
+    private val draft: Boolean = false,
     private val onSaved: (Long, Double, Boolean) -> Unit
 ) {
 
@@ -37,7 +38,14 @@ class DishDialog(
 
     fun show() {
         addToDayCheck.visibility = if (showAddToDay) View.VISIBLE else View.GONE
-        if (dishId > 0) {
+        if (draft) {
+            for (item in db.draftItems()) {
+                addIngredient().apply {
+                    productInput.setText(item.productName)
+                    weightInput.setText(fmt(item.grams))
+                }
+            }
+        } else if (dishId > 0) {
             val dish = products.firstOrNull { it.id == dishId }
             nameInput.setText(dish?.name ?: "")
             finalWeightInput.setText(fmt(dish?.finalGrams ?: 0.0))
@@ -56,11 +64,21 @@ class DishDialog(
             .setTitle(R.string.build_dish)
             .setView(content)
             .setPositiveButton(R.string.save, null)
+            .setNeutralButton(R.string.defer_dish, null)
             .setNegativeButton(R.string.cancel, null)
             .create()
 
         dialog.setOnShowListener {
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener { save(dialog) }
+            dialog.getButton(Dialog.BUTTON_NEUTRAL).setOnClickListener {
+                val items = collectItems()
+                if (items.isEmpty()) {
+                    Toast.makeText(activity, R.string.invalid_dish, Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                db.saveDraft(items)
+                dialog.dismiss()
+            }
         }
         dialog.show()
         updatePreview()
@@ -149,6 +167,7 @@ class DishDialog(
             Toast.makeText(activity, R.string.duplicate_product, Toast.LENGTH_SHORT).show()
             return
         }
+        db.clearDraft()
         Toast.makeText(activity, R.string.dish_saved, Toast.LENGTH_SHORT).show()
         onSaved(id, finalGrams, addToDayCheck.isChecked)
         dialog.dismiss()

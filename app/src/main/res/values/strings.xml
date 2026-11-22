@@ -61,4 +61,6 @@
     <string name="edit_weight">Изменить вес порции</string>
     <string name="weight_unknown">Вес: назначить</string>
     <string name="weight_dialog">Вес на выбранную дату, кг</string>
+    <string name="defer_dish">Отложить</string>
+    <string name="continue_dish">Продолжить создание блюда</string>
 </resources>

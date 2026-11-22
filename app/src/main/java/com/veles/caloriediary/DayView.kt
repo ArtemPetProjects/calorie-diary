@@ -30,6 +30,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
     private val dayStrip: LinearLayout = view.findViewById(R.id.dayStrip)
     private val entryList: LinearLayout = view.findViewById(R.id.entryList)
     private val weightButton: Button = view.findViewById(R.id.weightButton)
+    private val continueDishButton: Button = view.findViewById(R.id.continueDishButton)
     private val collapsedMeals = mutableMapOf<Long, Boolean>()
     private val months = arrayOf(
         "январь", "февраль", "март", "апрель", "май", "июнь",
@@ -46,6 +47,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         view.findViewById<Button>(R.id.nextWeek).setOnClickListener { shiftWeek(7) }
         view.findViewById<Button>(R.id.addEntryButton).setOnClickListener { showAddDialog() }
         view.findViewById<Button>(R.id.addDishButton).setOnClickListener { openDishDialog() }
+        continueDishButton.setOnClickListener { openDishDialog(draft = true) }
         refresh()
     }
 
@@ -92,6 +94,8 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             activity.getString(R.string.weight_unknown)
         }
         weightButton.setOnClickListener { openWeightDialog() }
+        continueDishButton.visibility =
+            if (db.draftItems().isNotEmpty()) View.VISIBLE else View.GONE
 
         entryList.removeAllViews()
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -113,7 +117,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             }
             val header = TextView(activity)
             header.text = (if (collapsed) "▶ " else "▼ ") + baseText
-            header.textSize = 14f
+            header.textSize = 15f
             val items = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
             items.visibility = if (collapsed) View.GONE else View.VISIBLE
             header.setOnClickListener {
@@ -263,8 +267,8 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
 
     private fun fmt(value: Double) = String.format(Locale.getDefault(), "%.1f", value)
 
-    fun openDishDialog(dishId: Long = 0L) {
-        DishDialog(activity, db, dishId) { id, grams, addToDay ->
+    fun openDishDialog(dishId: Long = 0L, draft: Boolean = false) {
+        DishDialog(activity, db, dishId, draft = draft) { id, grams, addToDay ->
             if (addToDay) {
                 db.products().firstOrNull { it.id == id }?.let { dish ->
                     db.addEntry(
