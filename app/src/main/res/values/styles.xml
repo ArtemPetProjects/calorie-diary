@@ -6,7 +6,7 @@
         <item name="android:textColorPrimary">@color/light_text</item>
         <item name="android:textColorSecondary">@color/light_secondary</item>
         <item name="android:colorAccent">@color/accent_light</item>
-        <item name="buttonBg">@drawable/rounded_button_light</item>
+        <item name="buttonBg">@drawable/button_selector_light</item>
         <item name="progressTrack">@color/track_light</item>
         <item name="progressKcal">@color/kcal_color</item>
         <item name="progressProtein">@color/protein_color</item>
@@ -19,7 +19,7 @@
         <item name="android:textColorPrimary">@color/dark_text</item>
         <item name="android:textColorSecondary">@color/dark_secondary</item>
         <item name="android:colorAccent">@color/accent_dark</item>
-        <item name="buttonBg">@drawable/rounded_button_dark</item>
+        <item name="buttonBg">@drawable/button_selector_dark</item>
         <item name="progressTrack">@color/track_dark</item>
         <item name="progressKcal">@color/kcal_color</item>
         <item name="progressProtein">@color/protein_color</item>
