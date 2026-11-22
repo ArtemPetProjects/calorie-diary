@@ -1,6 +1,7 @@
 package com.veles.caloriediary
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -22,6 +23,11 @@ class BelarusProductsTest {
     fun belarusAssetNamesAreUnique() {
         val names = rowRegex.findAll(json).map { it.groupValues[1] }.toList()
         assertEquals(names.size, names.toSet().size)
+    }
+
+    @Test
+    fun belarusAssetHasNoBrokenObjectBoundary() {
+        assertFalse(json.contains("}{"))
     }
 
     @Test
