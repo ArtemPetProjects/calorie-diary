@@ -6,4 +6,5 @@
     <attr name="progressProtein" format="color" />
     <attr name="progressFat" format="color" />
     <attr name="progressCarbs" format="color" />
+    <attr name="recentDishText" format="color" />
 </resources>

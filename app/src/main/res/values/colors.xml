@@ -20,4 +20,7 @@
     <color name="text_primary">@color/light_text</color>
     <color name="accent">@color/accent_light</color>
     <color name="ic_launcher_background">#F5A623</color>
+    <color name="recent_dish_light">#0288D1</color>
+    <color name="recent_dish_dark">#81D4FA</color>
+    <color name="recent_dish">@color/recent_dish_light</color>
 </resources>

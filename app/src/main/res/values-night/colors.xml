@@ -3,4 +3,5 @@
     <color name="background">@color/dark_bg</color>
     <color name="text_primary">@color/dark_text</color>
     <color name="accent">@color/accent_dark</color>
+    <color name="recent_dish">@color/recent_dish_dark</color>
 </resources>

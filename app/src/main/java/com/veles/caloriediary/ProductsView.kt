@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.database.sqlite.SQLiteConstraintException
+import android.graphics.Color
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -48,16 +49,19 @@ class ProductsView(private val activity: Activity) {
             override fun afterTextChanged(s: Editable?) = refreshList()
         })
         listView.setOnItemClickListener { _, _, position, _ ->
-            val product = listView.adapter.getItem(position) as Product
-            if (product.isDish) {
-                DishDialog(activity, db, product.id, showAddToDay = false) { _, _, _ ->
-                    refreshList()
-                }.show()
-            } else {
-                showDialog(product)
-            }
+            openEditor(listView.adapter.getItem(position) as Product)
         }
         refreshList()
+    }
+
+    private fun openEditor(product: Product) {
+        if (product.isDish) {
+            DishDialog(activity, db, product.id, showAddToDay = false) { _, _, _ ->
+                refreshList()
+            }.show()
+        } else {
+            showDialog(product)
+        }
     }
 
     fun refreshList() {
@@ -66,13 +70,17 @@ class ProductsView(private val activity: Activity) {
                 query = searchInput.text.toString(),
                 onlyCustom = mode == MODE_CUSTOM,
                 onlyDishes = mode == MODE_DISHES
-            )
+            ),
+            db.recentProductIds().toSet()
         )
     }
 
     private fun fmt(value: Double) = String.format(Locale.getDefault(), "%.1f", value)
 
-    private inner class ProductAdapter(private val items: List<Product>) : BaseAdapter() {
+    private inner class ProductAdapter(
+        private val items: List<Product>,
+        private val recentDishIds: Set<Long>
+    ) : BaseAdapter() {
         override fun getCount() = items.size
         override fun getItem(position: Int): Product = items[position]
         override fun getItemId(position: Int): Long = items[position].id
@@ -87,10 +95,23 @@ class ProductsView(private val activity: Activity) {
                 product.isCustom -> activity.getString(R.string.custom_mark)
                 else -> ""
             }
-            row.findViewById<TextView>(R.id.productText).text = activity.getString(
+            val nameView = row.findViewById<TextView>(R.id.productText)
+            nameView.text = activity.getString(
                 R.string.product_row,
                 product.name, mark, fmt(n.kcal), fmt(n.protein), fmt(n.fat), fmt(n.carbs)
             )
+            val attrs = activity.obtainStyledAttributes(
+                intArrayOf(R.attr.recentDishText, android.R.attr.textColorPrimary)
+            )
+            val recentColor = attrs.getColor(0, Color.parseColor("#0288D1"))
+            val normalColor = attrs.getColor(1, Color.parseColor("#212121"))
+            attrs.recycle()
+            nameView.setTextColor(
+                if (product.isDish && product.id in recentDishIds) recentColor else normalColor
+            )
+            row.findViewById<Button>(R.id.editProductButton).setOnClickListener {
+                openEditor(product)
+            }
             row.findViewById<Button>(R.id.deleteProductButton).setOnClickListener {
                 AlertDialog.Builder(activity)
                     .setTitle(R.string.confirm_delete)
