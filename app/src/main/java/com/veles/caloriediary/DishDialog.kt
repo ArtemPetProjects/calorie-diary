@@ -89,7 +89,7 @@ class DishDialog(
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
                 override fun afterTextChanged(s: Editable?) {
-                    val name = productInput.text.toString().trim()
+                    val name = ProductLabels.nameOf(productInput.text.toString())
                     val product = products.firstOrNull { it.name.equals(name, ignoreCase = true) }
                     info.text = if (product != null) {
                         val n = product.per100
@@ -112,7 +112,7 @@ class DishDialog(
         }
 
         fun collect(): DishIngredient? {
-            val name = productInput.text.toString().trim()
+            val name = ProductLabels.nameOf(productInput.text.toString())
             val grams = parseGrams(weightInput.text.toString()) ?: return null
             val product = products.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: return null
             return DishIngredient(product.id, product.name, grams, product.per100)

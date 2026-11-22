@@ -55,4 +55,5 @@
     <string name="product_suggestion">%1$s • %2$s ккал / Б %3$s / Ж %4$s / У %5$s на 100 г</string>
     <string name="body_weight">Вес тела, кг</string>
     <string name="my_scheme">Моя схема по весу</string>
+    <string name="weight_mismatch">Вес и калории несовместимы</string>
 </resources>

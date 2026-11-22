@@ -130,6 +130,20 @@ class CalculationTest {
     }
 
     @Test
+    fun productNameIsRestoredFromSuggestion() {
+        assertEquals(
+            "Хурма",
+            ProductLabels.nameOf("Хурма • 70 ккал / Б 0,6 / Ж 0,2 / У 18,6 на 100 г")
+        )
+        assertEquals("Хурма", ProductLabels.nameOf("Хурма"))
+    }
+
+    @Test
+    fun weightSchemeRejectsImpossibleCalories() {
+        assertNull(weightScheme(100.0, 500.0))
+    }
+
+    @Test
     fun weekDatesCrossesMonthAndLeapDay() {
         assertEquals(
             listOf(

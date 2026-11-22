@@ -5,6 +5,8 @@ import java.util.Locale
 
 object ProductLabels {
 
+    private const val SEPARATOR = " • "
+
     fun suggestion(activity: Activity, product: Product): String {
         val n = product.per100
         return activity.getString(
@@ -13,7 +15,7 @@ object ProductLabels {
         )
     }
 
-    fun nameOf(text: String): String = text.substringBefore(" • ").trim()
+    fun nameOf(text: String): String = text.substringBefore(SEPARATOR).trim()
 
     private fun fmt(value: Double) = String.format(Locale.getDefault(), "%.1f", value)
 }

@@ -81,7 +81,7 @@ class ProfileView(private val activity: Activity) {
             }
             val targets = weightScheme(weight, kcal)
             if (targets == null) {
-                Toast.makeText(activity, R.string.fill_targets, Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, R.string.weight_mismatch, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             updating = true
