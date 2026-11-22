@@ -50,6 +50,18 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             db.execSQL("ALTER TABLE products ADD COLUMN is_custom INTEGER NOT NULL DEFAULT 0")
             db.execSQL("ALTER TABLE products ADD COLUMN final_grams REAL NOT NULL DEFAULT 0")
             createDishItems(db)
+
+            for (p in STARTER_PRODUCTS) {
+                db.insertWithOnConflict(
+                    "products", null, productValues(p), SQLiteDatabase.CONFLICT_IGNORE
+                )
+            }
+            val names = STARTER_PRODUCTS.map { it.name }
+            val placeholders = names.joinToString(",") { "?" }
+            db.execSQL(
+                "UPDATE products SET is_custom = 1 WHERE name NOT IN ($placeholders)",
+                names.toTypedArray()
+            )
         }
     }
 
@@ -71,7 +83,10 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         onlyDishes: Boolean = false
     ): List<Product> {
         val conditions = mutableListOf<String>()
-        if (onlyCustom) conditions.add("is_custom = 1")
+        if (onlyCustom) {
+            conditions.add("is_custom = 1")
+            conditions.add("is_dish = 0")
+        }
         if (onlyDishes) conditions.add("is_dish = 1")
         val where = if (conditions.isEmpty()) null else conditions.joinToString(" AND ")
         val cursor = readableDatabase.query("products", null, where, null, null, null, "name")
@@ -92,8 +107,11 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         return if (p.id <= 0) {
             writableDatabase.insert("products", null, values)
         } else {
-            writableDatabase.update("products", values, "_id = ?", arrayOf(p.id.toString()))
-            p.id
+            val rows = writableDatabase.updateWithOnConflict(
+                "products", values, "_id = ?", arrayOf(p.id.toString()),
+                SQLiteDatabase.CONFLICT_IGNORE
+            )
+            if (rows == 0) -1L else p.id
         }
     }
 
@@ -115,8 +133,11 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
                 put("final_grams", finalGrams)
             }
             savedId = if (dishId > 0) {
-                writableDatabase.update("products", values, "_id = ?", arrayOf(dishId.toString()))
-                dishId
+                val rows = writableDatabase.updateWithOnConflict(
+                    "products", values, "_id = ?", arrayOf(dishId.toString()),
+                    SQLiteDatabase.CONFLICT_IGNORE
+                )
+                if (rows == 0) -1L else dishId
             } else {
                 writableDatabase.insert("products", null, values)
             }

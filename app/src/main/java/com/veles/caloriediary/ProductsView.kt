@@ -28,7 +28,7 @@ class ProductsView(private val activity: Activity) {
     init {
         view.findViewById<Button>(R.id.addProductButton).setOnClickListener { showDialog(null) }
         view.findViewById<Button>(R.id.addDishButton).setOnClickListener {
-            DishDialog(activity, db) { _, _, _ -> refreshList() }.show()
+            DishDialog(activity, db, showAddToDay = false) { _, _, _ -> refreshList() }.show()
         }
         view.findViewById<Button>(R.id.filterAll).setOnClickListener {
             mode = MODE_ALL
@@ -50,7 +50,9 @@ class ProductsView(private val activity: Activity) {
         listView.setOnItemClickListener { _, _, position, _ ->
             val product = listView.adapter.getItem(position) as Product
             if (product.isDish) {
-                DishDialog(activity, db, product.id) { _, _, _ -> refreshList() }.show()
+                DishDialog(activity, db, product.id, showAddToDay = false) { _, _, _ ->
+                    refreshList()
+                }.show()
             } else {
                 showDialog(product)
             }
@@ -80,10 +82,15 @@ class ProductsView(private val activity: Activity) {
                 .inflate(R.layout.item_product, parent, false)
             val product = items[position]
             val n = product.per100
-            val mark = if (product.isDish) " [блюдо]" else if (product.isCustom) " [своё]" else ""
-            row.findViewById<TextView>(R.id.productText).text =
-                "${product.name}$mark • ${fmt(n.kcal)} ккал / Б ${fmt(n.protein)} / " +
-                    "Ж ${fmt(n.fat)} / У ${fmt(n.carbs)} (на 100 г)"
+            val mark = when {
+                product.isDish -> activity.getString(R.string.dish_mark)
+                product.isCustom -> activity.getString(R.string.custom_mark)
+                else -> ""
+            }
+            row.findViewById<TextView>(R.id.productText).text = activity.getString(
+                R.string.product_row,
+                product.name, mark, fmt(n.kcal), fmt(n.protein), fmt(n.fat), fmt(n.carbs)
+            )
             row.findViewById<Button>(R.id.deleteProductButton).setOnClickListener {
                 AlertDialog.Builder(activity)
                     .setTitle(R.string.confirm_delete)

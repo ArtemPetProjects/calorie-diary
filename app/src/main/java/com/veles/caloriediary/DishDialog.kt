@@ -21,6 +21,7 @@ class DishDialog(
     private val activity: Activity,
     private val db: Db,
     private val dishId: Long = 0L,
+    private val showAddToDay: Boolean = true,
     private val onSaved: (Long, Double, Boolean) -> Unit
 ) {
 
@@ -37,6 +38,7 @@ class DishDialog(
     private val rows = mutableListOf<IngredientRow>()
 
     fun show() {
+        addToDayCheck.visibility = if (showAddToDay) View.VISIBLE else View.GONE
         if (dishId > 0) {
             val dish = products.firstOrNull { it.id == dishId }
             nameInput.setText(dish?.name ?: "")
@@ -110,7 +112,9 @@ class DishDialog(
         val grams = parseGrams(finalWeightInput.text.toString())
         val n = if (grams != null) dishPer100(collectItems(), grams) else null
         preview.text = if (n != null) {
-            "${fmt(n.kcal)} ккал • Б ${fmt(n.protein)} / Ж ${fmt(n.fat)} / У ${fmt(n.carbs)} на 100 г"
+            activity.getString(
+                R.string.dish_preview, fmt(n.kcal), fmt(n.protein), fmt(n.fat), fmt(n.carbs)
+            )
         } else {
             ""
         }
@@ -120,6 +124,10 @@ class DishDialog(
         val name = nameInput.text.toString().trim()
         val items = collectItems()
         val finalGrams = parseGrams(finalWeightInput.text.toString())
+        if (rows.size != items.size) {
+            Toast.makeText(activity, R.string.invalid_dish, Toast.LENGTH_SHORT).show()
+            return
+        }
         if (name.isBlank() || items.isEmpty() || finalGrams == null) {
             Toast.makeText(activity, R.string.invalid_dish, Toast.LENGTH_SHORT).show()
             return
