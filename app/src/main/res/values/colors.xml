@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="light_bg">#FAFAFA</color>
+    <color name="light_text">#212121</color>
+    <color name="light_secondary">#616161</color>
+    <color name="dark_bg">#121212</color>
+    <color name="dark_text">#F5F5F5</color>
+    <color name="dark_secondary">#BDBDBD</color>
+    <color name="accent_light">#2E7D32</color>
+    <color name="accent_dark">#81C784</color>
+    <color name="track_light">#E0E0E0</color>
+    <color name="track_dark">#424242</color>
+    <color name="button_light">#E8F5E9</color>
+    <color name="button_dark">#2E4A32</color>
+    <color name="kcal_color">#EF6C00</color>
+    <color name="protein_color">#1976D2</color>
+    <color name="fat_color">#C2185B</color>
+    <color name="carbs_color">#7B1FA2</color>
+    <color name="background">@color/light_bg</color>
+    <color name="text_primary">@color/light_text</color>
+    <color name="accent">@color/accent_light</color>
+</resources>

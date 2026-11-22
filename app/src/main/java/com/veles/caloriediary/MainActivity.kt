@@ -14,6 +14,8 @@ class MainActivity : Activity() {
     private var activeTab = TAB_DAY
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val dark = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_DARK, false)
+        setTheme(if (dark) R.style.AppTheme_Dark else R.style.AppTheme_Light)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -51,6 +53,8 @@ class MainActivity : Activity() {
     }
 
     companion object {
+        const val PREFS = "settings"
+        const val KEY_DARK = "dark_theme"
         private const val KEY_TAB = "activeTab"
         private const val KEY_DATE = "selectedDate"
         private const val TAB_DAY = "day"

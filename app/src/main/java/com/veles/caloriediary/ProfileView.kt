@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Switch
 import android.widget.Toast
 import java.util.Locale
 
@@ -23,6 +24,14 @@ class ProfileView(private val activity: Activity) {
         proteinInput.setText(fmt(targets.protein))
         fatInput.setText(fmt(targets.fat))
         carbsInput.setText(fmt(targets.carbs))
+
+        val prefs = activity.getSharedPreferences(MainActivity.PREFS, Activity.MODE_PRIVATE)
+        val darkSwitch = view.findViewById<Switch>(R.id.darkThemeSwitch)
+        darkSwitch.isChecked = prefs.getBoolean(MainActivity.KEY_DARK, false)
+        darkSwitch.setOnCheckedChangeListener { _, checked ->
+            prefs.edit().putBoolean(MainActivity.KEY_DARK, checked).apply()
+            activity.recreate()
+        }
 
         view.findViewById<Button>(R.id.saveTargetsButton).setOnClickListener {
             val kcal = readNumber(kcalInput)

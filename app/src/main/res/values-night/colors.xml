@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">@color/dark_bg</color>
+    <color name="text_primary">@color/dark_text</color>
+    <color name="accent">@color/accent_dark</color>
+</resources>
