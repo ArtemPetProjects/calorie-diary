@@ -113,10 +113,17 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
 
         entryList.removeAllViews()
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        for (group in groupByMeal(entries)) {
+        for ((index, group) in groupByMeal(entries).withIndex()) {
             val box = LinearLayout(activity).apply {
                 orientation = LinearLayout.VERTICAL
-                background = activity.getDrawable(R.drawable.meal_group_border)
+                background = activity.getDrawable(
+                    when (index % 4) {
+                        0 -> R.drawable.meal_border_0
+                        1 -> R.drawable.meal_border_1
+                        2 -> R.drawable.meal_border_2
+                        else -> R.drawable.meal_border_3
+                    }
+                )
                 setPadding(8, 4, 8, 4)
                 layoutParams = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
@@ -131,7 +138,8 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             }
             val header = TextView(activity)
             header.text = (if (collapsed) "▶ " else "▼ ") + baseText
-            header.textSize = 15f
+            header.textSize = 16f
+            header.setTypeface(null, android.graphics.Typeface.BOLD)
             val items = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
             items.visibility = if (collapsed) View.GONE else View.VISIBLE
             header.setOnClickListener {
@@ -245,7 +253,17 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         view.findViewById<ProgressBar>(barId).progress = progress(current, target)
         val percent = progressPercent(current, target)
         val remaining = maxOf(0.0, target - current)
-        view.findViewById<TextView>(valueId).text = activity.getString(
+        val valueView = view.findViewById<TextView>(valueId)
+        val colorAttr = when (valueId) {
+            R.id.kcalValue -> R.attr.progressKcal
+            R.id.proteinValue -> R.attr.progressProtein
+            R.id.fatValue -> R.attr.progressFat
+            else -> R.attr.progressCarbs
+        }
+        val ta = activity.obtainStyledAttributes(intArrayOf(colorAttr))
+        valueView.setTextColor(ta.getColor(0, Color.GRAY))
+        ta.recycle()
+        valueView.text = activity.getString(
             R.string.progress_value, fmt(current), fmt(target), percent, fmt(remaining)
         )
     }

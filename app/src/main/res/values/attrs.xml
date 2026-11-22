@@ -7,4 +7,8 @@
     <attr name="progressFat" format="color" />
     <attr name="progressCarbs" format="color" />
     <attr name="recentDishText" format="color" />
+    <attr name="meal0" format="color" />
+    <attr name="meal1" format="color" />
+    <attr name="meal2" format="color" />
+    <attr name="meal3" format="color" />
 </resources>

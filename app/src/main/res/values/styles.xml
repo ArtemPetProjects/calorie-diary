@@ -13,6 +13,10 @@
         <item name="progressFat">@color/fat_color</item>
         <item name="progressCarbs">@color/carbs_color</item>
         <item name="recentDishText">@color/recent_dish</item>
+        <item name="meal0">@color/meal0</item>
+        <item name="meal1">@color/meal1</item>
+        <item name="meal2">@color/meal2</item>
+        <item name="meal3">@color/meal3</item>
     </style>
 
     <style name="AppTheme.Dark" parent="@android:style/Theme.Material">
@@ -27,6 +31,10 @@
         <item name="progressFat">@color/fat_color</item>
         <item name="progressCarbs">@color/carbs_color</item>
         <item name="recentDishText">@color/recent_dish</item>
+        <item name="meal0">@color/meal0</item>
+        <item name="meal1">@color/meal1</item>
+        <item name="meal2">@color/meal2</item>
+        <item name="meal3">@color/meal3</item>
     </style>
 
     <style name="AppButton" parent="@android:style/Widget.Material.Button">

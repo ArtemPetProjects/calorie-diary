@@ -23,4 +23,16 @@
     <color name="recent_dish_light">#0288D1</color>
     <color name="recent_dish_dark">#81D4FA</color>
     <color name="recent_dish">@color/recent_dish_light</color>
+    <color name="meal0_light">#FFB74D</color>
+    <color name="meal1_light">#81C784</color>
+    <color name="meal2_light">#9575CD</color>
+    <color name="meal3_light">#4FC3F7</color>
+    <color name="meal0_dark">#FFB74D</color>
+    <color name="meal1_dark">#81C784</color>
+    <color name="meal2_dark">#B39DDB</color>
+    <color name="meal3_dark">#4FC3F7</color>
+    <color name="meal0">@color/meal0_light</color>
+    <color name="meal1">@color/meal1_light</color>
+    <color name="meal2">@color/meal2_light</color>
+    <color name="meal3">@color/meal3_light</color>
 </resources>

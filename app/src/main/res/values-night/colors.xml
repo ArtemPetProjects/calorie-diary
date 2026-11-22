@@ -4,4 +4,8 @@
     <color name="text_primary">@color/dark_text</color>
     <color name="accent">@color/accent_dark</color>
     <color name="recent_dish">@color/recent_dish_dark</color>
+    <color name="meal0">@color/meal0_dark</color>
+    <color name="meal1">@color/meal1_dark</color>
+    <color name="meal2">@color/meal2_dark</color>
+    <color name="meal3">@color/meal3_dark</color>
 </resources>
