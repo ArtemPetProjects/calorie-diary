@@ -20,7 +20,7 @@
             android:textSize="15sp"
             android:text="@string/product_name" />
 
-        <EditText
+        <AutoCompleteTextView
             android:id="@+id/productInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -28,7 +28,8 @@
             android:layout_marginEnd="12dp"
             android:textSize="16sp"
             android:hint="@string/product_name"
-            android:inputType="text" />
+            android:inputType="text"
+            android:completionThreshold="1" />
 
         <TextView
             android:id="@+id/selectedProductInfo"

@@ -32,12 +32,14 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         db.execSQL(
             "CREATE TABLE products (" +
                 "_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "name TEXT UNIQUE NOT NULL, " +
+                "name TEXT NOT NULL, " +
                 "kcal REAL, protein REAL, fat REAL, carbs REAL, " +
                 "is_dish INTEGER NOT NULL DEFAULT 0, " +
                 "is_custom INTEGER NOT NULL DEFAULT 0, " +
                 "final_grams REAL NOT NULL DEFAULT 0, " +
-                "search_name TEXT NOT NULL DEFAULT '')"
+                "profile_id INTEGER NOT NULL DEFAULT 0, " +
+                "search_name TEXT NOT NULL DEFAULT '', " +
+                "UNIQUE(name, profile_id))"
         )
         db.execSQL(
             "CREATE TABLE profiles (" +
@@ -161,6 +163,40 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         }
         if (oldVersion < 11) {
             migrateDraftsV2(db)
+        }
+        if (oldVersion < 12) {
+            migrateProductsPerProfile(db)
+        }
+    }
+
+    private fun migrateProductsPerProfile(db: SQLiteDatabase) {
+        val ownTransaction = !db.inTransaction()
+        if (ownTransaction) db.beginTransaction()
+        try {
+            if (!hasColumn(db, "products", "profile_id")) {
+                db.execSQL("ALTER TABLE products ADD COLUMN profile_id INTEGER NOT NULL DEFAULT 0")
+            }
+            db.execSQL("UPDATE products SET profile_id = 1 WHERE is_custom = 1 OR is_dish = 1")
+            db.execSQL(
+                "CREATE TABLE products_new (" +
+                    "_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "name TEXT NOT NULL, kcal REAL, protein REAL, fat REAL, carbs REAL, " +
+                    "is_dish INTEGER NOT NULL DEFAULT 0, is_custom INTEGER NOT NULL DEFAULT 0, " +
+                    "final_grams REAL NOT NULL DEFAULT 0, profile_id INTEGER NOT NULL DEFAULT 0, " +
+                    "search_name TEXT NOT NULL DEFAULT '', UNIQUE(name, profile_id))"
+            )
+            db.execSQL(
+                "INSERT INTO products_new " +
+                    "(_id,name,kcal,protein,fat,carbs,is_dish,is_custom,final_grams,profile_id,search_name) " +
+                    "SELECT _id,name,kcal,protein,fat,carbs,is_dish,is_custom,final_grams,profile_id,search_name " +
+                    "FROM products"
+            )
+            db.execSQL("DROP TABLE products")
+            db.execSQL("ALTER TABLE products_new RENAME TO products")
+            db.execSQL("CREATE INDEX IF NOT EXISTS idx_products_search ON products(search_name)")
+            if (ownTransaction) db.setTransactionSuccessful()
+        } finally {
+            if (ownTransaction) db.endTransaction()
         }
     }
 
@@ -430,19 +466,29 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         onlyDishes: Boolean = false
     ): List<Product> {
         val conditions = mutableListOf<String>()
+        val argsList = mutableListOf<String>()
         if (onlyCustom) {
+            conditions.add("profile_id = ?")
+            argsList.add(activeProfileId().toString())
             conditions.add("is_custom = 1")
             conditions.add("is_dish = 0")
+        } else if (onlyDishes) {
+            conditions.add("profile_id = ?")
+            argsList.add(activeProfileId().toString())
+            conditions.add("is_dish = 1")
+        } else {
+            conditions.add("(profile_id = 0 OR profile_id = ?)")
+            argsList.add(activeProfileId().toString())
         }
-        if (onlyDishes) conditions.add("is_dish = 1")
         var selection: String? = null
         var args: Array<String>? = null
         if (query.isNotBlank()) {
             conditions.add("search_name LIKE ?")
+            argsList.add("%${query.lowercase()}%")
+        }
+        if (conditions.isNotEmpty()) {
             selection = conditions.joinToString(" AND ")
-            args = arrayOf("%${query.lowercase()}%")
-        } else if (conditions.isNotEmpty()) {
-            selection = conditions.joinToString(" AND ")
+            args = argsList.toTypedArray()
         }
         val cursor = readableDatabase.query("products", null, selection, args, null, null, "name")
         return cursor.use { c ->
@@ -457,6 +503,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
     fun saveProduct(p: Product): Long {
         val values = productValues(p)
         return if (p.id <= 0) {
+            values.put("profile_id", activeProfileId())
             writableDatabase.insert("products", null, values)
         } else {
             val rows = writableDatabase.updateWithOnConflict(
@@ -491,6 +538,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
                 )
                 if (rows == 0) -1L else dishId
             } else {
+                values.put("profile_id", activeProfileId())
                 writableDatabase.insert("products", null, values)
             }
             if (savedId > 0) {
@@ -544,7 +592,10 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         writableDatabase.beginTransaction()
         try {
             writableDatabase.delete("dish_items", "dish_id = ?", arrayOf(id.toString()))
-            writableDatabase.delete("products", "_id = ?", arrayOf(id.toString()))
+            writableDatabase.delete(
+                "products", "_id = ? AND profile_id = ?",
+                arrayOf(id.toString(), activeProfileId().toString())
+            )
             writableDatabase.setTransactionSuccessful()
         } finally {
             writableDatabase.endTransaction()
@@ -832,7 +883,10 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             writableDatabase.insert(
                 "targets", null, ContentValues().apply {
                     put("profile_id", id)
-                    putNutrients(this, DEFAULT_TARGETS)
+                    put("kcal", 0.0)
+                    put("protein", 0.0)
+                    put("fat", 0.0)
+                    put("carbs", 0.0)
                 }
             )
         }
@@ -944,7 +998,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 11
+        private const val DB_VERSION = 12
         private const val ASSET_PRODUCTS = "products_extended.json"
         private const val ASSET_BELARUS = "products_belarus.json"
         private const val KEY_ACTIVE_PROFILE = "active_profile_id"

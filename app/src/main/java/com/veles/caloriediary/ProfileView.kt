@@ -62,13 +62,15 @@ class ProfileView(private val activity: Activity) {
         updating = false
 
         val purposes = activity.resources.getStringArray(R.array.scheme_purposes)
-        val schemeOptions = MACRO_SCHEMES.mapIndexed { index, scheme ->
-            SchemeOption(
-                activity.getString(R.string.scheme_title, scheme.name, purposes[index]),
-                activity.getString(R.string.scheme_details, scheme.proteinPct, scheme.fatPct, scheme.carbsPct)
+        val schemeLabels = MACRO_SCHEMES.mapIndexed { index, scheme ->
+            activity.getString(R.string.scheme_title, scheme.name, purposes.getOrElse(index) { "" }) +
+                "\n" + activity.getString(
+                R.string.scheme_details, scheme.proteinPct, scheme.fatPct, scheme.carbsPct
             )
         }
-        schemeSpinner.adapter = SchemeAdapter(activity, schemeOptions)
+        schemeSpinner.adapter = ArrayAdapter(
+            activity, android.R.layout.simple_spinner_dropdown_item, schemeLabels
+        )
         profileSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -105,10 +107,10 @@ class ProfileView(private val activity: Activity) {
 
         val targets = db.targets()
         updating = true
-        kcalInput.setText(fmt(targets.kcal))
-        proteinInput.setText(fmt(targets.protein))
-        fatInput.setText(fmt(targets.fat))
-        carbsInput.setText(fmt(targets.carbs))
+        kcalInput.setText(if (targets.kcal > 0) fmt(targets.kcal) else "")
+        proteinInput.setText(if (targets.protein > 0) fmt(targets.protein) else "")
+        fatInput.setText(if (targets.fat > 0) fmt(targets.fat) else "")
+        carbsInput.setText(if (targets.carbs > 0) fmt(targets.carbs) else "")
         updating = false
 
         listOf(proteinInput, fatInput, carbsInput).forEach { input ->
@@ -132,7 +134,11 @@ class ProfileView(private val activity: Activity) {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (!updating && position in MACRO_SCHEMES.indices && readNumber(kcalInput) != null) {
-                    applyScheme(position)
+                    try {
+                        applyScheme(position)
+                    } catch (e: Exception) {
+                        Toast.makeText(activity, R.string.scheme_error, Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
