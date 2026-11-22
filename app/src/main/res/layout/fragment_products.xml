@@ -11,11 +11,57 @@
         android:layout_height="wrap_content"
         android:hint="@string/search" />
 
-    <Button
-        android:id="@+id/addProductButton"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/add_product" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/filterAll"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="@string/all" />
+
+        <Button
+            android:id="@+id/filterMine"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="@string/my_products" />
+
+        <Button
+            android:id="@+id/filterDishes"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="@string/my_dishes" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/addProductButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="@string/add_product" />
+
+        <Button
+            android:id="@+id/addDishButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="@string/build_dish" />
+    </LinearLayout>
 
     <ListView
         android:id="@+id/productList"

@@ -33,4 +33,7 @@
     <string name="add_to_day">Добавить в день</string>
     <string name="dish_saved">Блюдо сохранено</string>
     <string name="invalid_dish">Проверьте ингредиенты и итоговый вес</string>
+    <string name="all">Все</string>
+    <string name="my_products">Мои продукты</string>
+    <string name="my_dishes">Мои блюда</string>
 </resources>

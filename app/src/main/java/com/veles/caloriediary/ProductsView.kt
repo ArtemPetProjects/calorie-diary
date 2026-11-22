@@ -23,22 +23,49 @@ class ProductsView(private val activity: Activity) {
     private val db = Db(activity)
     private val listView: ListView = view.findViewById(R.id.productList)
     private val searchInput: EditText = view.findViewById(R.id.searchInput)
+    private var mode = MODE_ALL
 
     init {
         view.findViewById<Button>(R.id.addProductButton).setOnClickListener { showDialog(null) }
+        view.findViewById<Button>(R.id.addDishButton).setOnClickListener {
+            DishDialog(activity, db) { _, _, _ -> refreshList() }.show()
+        }
+        view.findViewById<Button>(R.id.filterAll).setOnClickListener {
+            mode = MODE_ALL
+            refreshList()
+        }
+        view.findViewById<Button>(R.id.filterMine).setOnClickListener {
+            mode = MODE_CUSTOM
+            refreshList()
+        }
+        view.findViewById<Button>(R.id.filterDishes).setOnClickListener {
+            mode = MODE_DISHES
+            refreshList()
+        }
         searchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) = refreshList()
         })
         listView.setOnItemClickListener { _, _, position, _ ->
-            showDialog(listView.adapter.getItem(position) as Product)
+            val product = listView.adapter.getItem(position) as Product
+            if (product.isDish) {
+                DishDialog(activity, db, product.id) { _, _, _ -> refreshList() }.show()
+            } else {
+                showDialog(product)
+            }
         }
         refreshList()
     }
 
     fun refreshList() {
-        listView.adapter = ProductAdapter(db.products(searchInput.text.toString()))
+        listView.adapter = ProductAdapter(
+            db.products(
+                query = searchInput.text.toString(),
+                onlyCustom = mode == MODE_CUSTOM,
+                onlyDishes = mode == MODE_DISHES
+            )
+        )
     }
 
     private fun fmt(value: Double) = String.format(Locale.getDefault(), "%.1f", value)
@@ -53,8 +80,9 @@ class ProductsView(private val activity: Activity) {
                 .inflate(R.layout.item_product, parent, false)
             val product = items[position]
             val n = product.per100
+            val mark = if (product.isDish) " [блюдо]" else if (product.isCustom) " [своё]" else ""
             row.findViewById<TextView>(R.id.productText).text =
-                "${product.name} • ${fmt(n.kcal)} ккал / Б ${fmt(n.protein)} / " +
+                "${product.name}$mark • ${fmt(n.kcal)} ккал / Б ${fmt(n.protein)} / " +
                     "Ж ${fmt(n.fat)} / У ${fmt(n.carbs)} (на 100 г)"
             row.findViewById<Button>(R.id.deleteProductButton).setOnClickListener {
                 AlertDialog.Builder(activity)
@@ -107,7 +135,16 @@ class ProductsView(private val activity: Activity) {
                 }
                 val id = product?.id ?: 0L
                 val savedId = try {
-                    db.saveProduct(Product(id, name, Nutrients(kcal, protein, fat, carbs)))
+                    db.saveProduct(
+                        Product(
+                            id = id,
+                            name = name,
+                            per100 = Nutrients(kcal, protein, fat, carbs),
+                            finalGrams = product?.finalGrams ?: 0.0,
+                            isDish = product?.isDish ?: false,
+                            isCustom = true
+                        )
+                    )
                 } catch (e: SQLiteConstraintException) {
                     Toast.makeText(activity, R.string.duplicate_product, Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
@@ -128,5 +165,11 @@ class ProductsView(private val activity: Activity) {
         if (raw.isBlank()) return null
         val value = raw.replace(',', '.').toDoubleOrNull() ?: return null
         return if (value >= 0.0) value else null
+    }
+
+    companion object {
+        private const val MODE_ALL = 0
+        private const val MODE_CUSTOM = 1
+        private const val MODE_DISHES = 2
     }
 }
