@@ -146,6 +146,6 @@ class ProfileView(private val activity: Activity) {
     }
 
     companion object {
-        private const val KEY_WEIGHT = "body_weight"
+        const val KEY_WEIGHT = "body_weight"
     }
 }

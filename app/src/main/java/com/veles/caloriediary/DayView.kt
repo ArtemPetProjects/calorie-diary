@@ -29,6 +29,8 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
     private val monthLabel: TextView = view.findViewById(R.id.monthLabel)
     private val dayStrip: LinearLayout = view.findViewById(R.id.dayStrip)
     private val entryList: LinearLayout = view.findViewById(R.id.entryList)
+    private val weightLabel: TextView = view.findViewById(R.id.weightLabel)
+    private val collapsedMeals = mutableMapOf<Long, Boolean>()
     private val months = arrayOf(
         "январь", "февраль", "март", "апрель", "май", "июнь",
         "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"
@@ -83,9 +85,25 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         bindBar(R.id.fatBar, R.id.fatValue, totals.fat, targets.fat)
         bindBar(R.id.carbsBar, R.id.carbsValue, totals.carbs, targets.carbs)
 
+        val weight = activity.getSharedPreferences(MainActivity.PREFS, Activity.MODE_PRIVATE)
+            .getFloat(ProfileView.KEY_WEIGHT, 0f)
+        weightLabel.text = if (weight > 0f) {
+            activity.getString(R.string.weight_today, fmt(weight.toDouble()))
+        } else {
+            activity.getString(R.string.weight_unknown)
+        }
+
         entryList.removeAllViews()
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
         for (group in groupByMeal(entries)) {
+            val box = LinearLayout(activity).apply {
+                orientation = LinearLayout.VERTICAL
+                background = activity.resources.getDrawable(R.drawable.meal_group_border, null)
+                setPadding(8, 4, 8, 4)
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply { setMargins(0, 8, 0, 0) }
+            }
             val header = TextView(activity)
             header.text = if (group.startMs <= 0L) {
                 activity.getString(R.string.meal_unknown)
@@ -94,8 +112,16 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                 activity.getString(R.string.meal_time, timeFormat.format(Date(group.startMs)), fmt(kcal))
             }
             header.textSize = 14f
-            header.setPadding(0, 8, 0, 2)
-            entryList.addView(header)
+            val items = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+            val collapsed = collapsedMeals[group.startMs] ?: false
+            items.visibility = if (collapsed) View.GONE else View.VISIBLE
+            header.setOnClickListener {
+                val next = !(collapsedMeals[group.startMs] ?: false)
+                collapsedMeals[group.startMs] = next
+                items.visibility = if (next) View.GONE else View.VISIBLE
+            }
+            box.addView(header)
+            box.addView(items)
 
             for (entry in group.entries) {
                 val row = LayoutInflater.from(activity)
@@ -106,6 +132,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                     R.string.entry_macros,
                     fmt(entry.values.protein), fmt(entry.values.fat), fmt(entry.values.carbs)
                 )
+                row.setOnClickListener { openEditWeightDialog(entry) }
                 row.findViewById<Button>(R.id.deleteEntryButton).setOnClickListener {
                     android.app.AlertDialog.Builder(activity)
                         .setTitle(R.string.confirm_delete)
@@ -116,9 +143,34 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                         .setNegativeButton(R.string.cancel, null)
                         .show()
                 }
-                entryList.addView(row)
+                items.addView(row)
             }
+            entryList.addView(box)
         }
+    }
+
+    private fun openEditWeightDialog(entry: Entry) {
+        val input = EditText(activity).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or
+                android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+            setText(fmt(entry.grams))
+            hint = activity.getString(R.string.grams)
+        }
+        android.app.AlertDialog.Builder(activity)
+            .setTitle(R.string.edit_weight)
+            .setView(input)
+            .setPositiveButton(R.string.save) { _, _ ->
+                val grams = parseGrams(input.text.toString())
+                val scaled = if (grams != null) rescale(entry.values, entry.grams, grams) else null
+                if (grams == null || scaled == null) {
+                    Toast.makeText(activity, R.string.enter_weight, Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                db.updateEntry(entry.id, grams, scaled)
+                refresh()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun bindBar(barId: Int, valueId: Int, current: Double, target: Double) {

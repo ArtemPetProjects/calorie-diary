@@ -37,6 +37,13 @@
                 android:text="@string/next_week" />
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/weightLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="13sp" />
+
         <LinearLayout
             android:id="@+id/dayStrip"
             android:layout_width="match_parent"
