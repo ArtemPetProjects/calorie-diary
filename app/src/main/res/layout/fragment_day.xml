@@ -37,11 +37,11 @@
                 android:text="@string/next_week" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/weightLabel"
+        <Button style="@style/AppButton"
+            android:id="@+id/weightButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:minHeight="36dp"
             android:textSize="13sp" />
 
         <LinearLayout

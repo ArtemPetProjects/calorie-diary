@@ -29,7 +29,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
     private val monthLabel: TextView = view.findViewById(R.id.monthLabel)
     private val dayStrip: LinearLayout = view.findViewById(R.id.dayStrip)
     private val entryList: LinearLayout = view.findViewById(R.id.entryList)
-    private val weightLabel: TextView = view.findViewById(R.id.weightLabel)
+    private val weightButton: Button = view.findViewById(R.id.weightButton)
     private val collapsedMeals = mutableMapOf<Long, Boolean>()
     private val months = arrayOf(
         "январь", "февраль", "март", "апрель", "май", "июнь",
@@ -85,13 +85,13 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         bindBar(R.id.fatBar, R.id.fatValue, totals.fat, targets.fat)
         bindBar(R.id.carbsBar, R.id.carbsValue, totals.carbs, targets.carbs)
 
-        val weight = activity.getSharedPreferences(MainActivity.PREFS, Activity.MODE_PRIVATE)
-            .getFloat(ProfileView.KEY_WEIGHT, 0f)
-        weightLabel.text = if (weight > 0f) {
-            activity.getString(R.string.weight_today, fmt(weight.toDouble()))
+        val weight = db.weightFor(selectedDate)
+        weightButton.text = if (weight != null) {
+            activity.getString(R.string.weight_today, fmt(weight))
         } else {
             activity.getString(R.string.weight_unknown)
         }
+        weightButton.setOnClickListener { openWeightDialog() }
 
         entryList.removeAllViews()
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -147,6 +147,34 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             }
             entryList.addView(box)
         }
+    }
+
+    private fun openWeightDialog() {
+        val input = EditText(activity).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or
+                android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+            hint = activity.getString(R.string.weight_dialog)
+            db.weightFor(selectedDate)?.let { setText(fmt(it)) }
+        }
+        val dialog = android.app.AlertDialog.Builder(activity)
+            .setTitle(R.string.weight_dialog)
+            .setView(input)
+            .setPositiveButton(R.string.save, null)
+            .setNegativeButton(R.string.cancel, null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
+                val kg = parseGrams(input.text.toString())
+                if (kg == null || kg > 500.0) {
+                    Toast.makeText(activity, R.string.enter_weight, Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                db.saveWeight(selectedDate, kg)
+                dialog.dismiss()
+                refresh()
+            }
+        }
+        dialog.show()
     }
 
     private fun openEditWeightDialog(entry: Entry) {
