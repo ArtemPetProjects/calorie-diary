@@ -71,22 +71,24 @@ class ProfileView(private val activity: Activity) {
         schemeSpinner.adapter = SchemeAdapter(activity, schemeOptions)
         profileSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {}
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val profile = profiles.getOrNull(position) ?: return
+                if (updating || profile.id == db.activeProfileId()) return
+                db.setActiveProfile(profile.id)
+                activity.recreate()
+            }
         }
 
         view.findViewById<Button>(R.id.addProfileButton).setOnClickListener {
-            showNameDialog(activity.getString(R.string.add_profile), "") { db.addProfile(it) }
+            showNameDialog(activity.getString(R.string.add_profile), "") { name ->
+                val id = db.addProfile(name)
+                if (id > 0) db.setActiveProfile(id)
+            }
         }
         view.findViewById<Button>(R.id.renameProfileButton).setOnClickListener {
             val profile = selectedProfile() ?: return@setOnClickListener
             showNameDialog(activity.getString(R.string.rename_profile), profile.name) {
                 db.renameProfile(profile.id, it)
-            }
-        }
-        view.findViewById<Button>(R.id.switchProfileButton).setOnClickListener {
-            selectedProfile()?.let { profile ->
-                db.setActiveProfile(profile.id)
-                activity.recreate()
             }
         }
         view.findViewById<Button>(R.id.deleteProfileButton).setOnClickListener {
@@ -129,7 +131,9 @@ class ProfileView(private val activity: Activity) {
         schemeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (!updating && readNumber(kcalInput) != null) applyScheme(position)
+                if (!updating && position in MACRO_SCHEMES.indices && readNumber(kcalInput) != null) {
+                    applyScheme(position)
+                }
             }
         }
 

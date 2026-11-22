@@ -345,13 +345,18 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
     }
 
     private fun showAddDialog() {
-        val content = LayoutInflater.from(activity).inflate(R.layout.dialog_entry, null)
-        val productInput = content.findViewById<EditText>(R.id.productInput)
-        val suggestions = content.findViewById<ListView>(R.id.productSuggestions)
-        val weightInput = content.findViewById<EditText>(R.id.weightInput)
-        val preview = content.findViewById<TextView>(R.id.previewText)
-        val productInfo = content.findViewById<TextView>(R.id.selectedProductInfo)
-        val newFields = content.findViewById<LinearLayout>(R.id.newProductFields)
+        val header = LayoutInflater.from(activity).inflate(R.layout.dialog_entry, null)
+        val productInput = header.findViewById<EditText>(R.id.productInput)
+        val weightInput = header.findViewById<EditText>(R.id.weightInput)
+        val preview = header.findViewById<TextView>(R.id.previewText)
+        val productInfo = header.findViewById<TextView>(R.id.selectedProductInfo)
+        val newFields = header.findViewById<LinearLayout>(R.id.newProductFields)
+
+        val suggestions = ListView(activity).apply {
+            divider = activity.getDrawable(R.drawable.meal_group_border)
+            dividerHeight = 1
+            addHeaderView(header, null, false)
+        }
 
         val products = db.products().toMutableList()
         val adapter = SuggestionAdapter(activity, products, db.recentProductIds())
@@ -359,10 +364,11 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         adapter.showInitial()
         suggestions.adapter = adapter
         suggestions.setOnItemClickListener { _, _, position, _ ->
+            val item = adapter.getItem(position - suggestions.headerViewsCount)
+                ?: return@setOnItemClickListener
             suppressSuggestion = true
-            productInput.setText(adapter.getItem(position)?.product?.name ?: "")
+            productInput.setText(item.product.name)
             suppressSuggestion = false
-            suggestions.visibility = View.GONE
         }
 
         val watcher = object : TextWatcher {
@@ -392,7 +398,6 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                 }
                 if (!suppressSuggestion) {
                     adapter.filter.filter(productInput.text.toString())
-                    suggestions.visibility = View.VISIBLE
                 }
             }
         }
@@ -400,12 +405,11 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         productInput.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus && !suppressSuggestion) {
                 adapter.filter.filter(productInput.text.toString())
-                suggestions.visibility = View.VISIBLE
             }
         }
         weightInput.addTextChangedListener(watcher)
 
-        val newKcalInput = content.findViewById<EditText>(R.id.newKcalInput)
+        val newKcalInput = header.findViewById<EditText>(R.id.newKcalInput)
         var updatingNewKcal = false
         val newMacroWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -415,9 +419,9 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                 val value = autoFilledKcal(
                     true,
                     newKcalInput.text.toString(),
-                    readNumber(content, R.id.newProteinInput),
-                    readNumber(content, R.id.newFatInput),
-                    readNumber(content, R.id.newCarbsInput)
+                    readNumber(header, R.id.newProteinInput),
+                    readNumber(header, R.id.newFatInput),
+                    readNumber(header, R.id.newCarbsInput)
                 )
                 if (value != null) {
                     updatingNewKcal = true
@@ -426,12 +430,12 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                 }
             }
         }
-        content.findViewById<EditText>(R.id.newProteinInput).addTextChangedListener(newMacroWatcher)
-        content.findViewById<EditText>(R.id.newFatInput).addTextChangedListener(newMacroWatcher)
-        content.findViewById<EditText>(R.id.newCarbsInput).addTextChangedListener(newMacroWatcher)
+        header.findViewById<EditText>(R.id.newProteinInput).addTextChangedListener(newMacroWatcher)
+        header.findViewById<EditText>(R.id.newFatInput).addTextChangedListener(newMacroWatcher)
+        header.findViewById<EditText>(R.id.newCarbsInput).addTextChangedListener(newMacroWatcher)
         val dialog = android.app.AlertDialog.Builder(activity)
             .setTitle(R.string.add_product)
-            .setView(content)
+            .setView(suggestions)
             .setPositiveButton(R.string.save, null)
             .setNegativeButton(R.string.cancel, null)
             .create()
@@ -440,7 +444,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         dialog.window?.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL)
         dialog.window?.setLayout(
             WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.WRAP_CONTENT
+            WindowManager.LayoutParams.MATCH_PARENT
         )
         dialog.setOnShowListener {
             dialog.focusAndShowKeyboard(productInput, showDropdown = true)
@@ -457,10 +461,10 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                 if (grams == null) return@setOnClickListener
                 var product = products.firstOrNull { it.name.equals(name, ignoreCase = true) }
                 if (product == null) {
-                    val kcal = readNumber(content, R.id.newKcalInput)
-                    val protein = readNumber(content, R.id.newProteinInput)
-                    val fat = readNumber(content, R.id.newFatInput)
-                    val carbs = readNumber(content, R.id.newCarbsInput)
+                    val kcal = readNumber(header, R.id.newKcalInput)
+                    val protein = readNumber(header, R.id.newProteinInput)
+                    val fat = readNumber(header, R.id.newFatInput)
+                    val carbs = readNumber(header, R.id.newCarbsInput)
                     if (kcal == null) {
                         toast(activity.getString(R.string.fill_targets))
                         return@setOnClickListener

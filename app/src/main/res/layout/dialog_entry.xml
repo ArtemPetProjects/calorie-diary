@@ -30,15 +30,6 @@
             android:hint="@string/product_name"
             android:inputType="text" />
 
-        <ListView
-            android:id="@+id/productSuggestions"
-            android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:layout_marginTop="2dp"
-            android:divider="?attr/progressTrack"
-            android:dividerHeight="1dp"
-            android:visibility="gone" />
-
         <TextView
             android:id="@+id/selectedProductInfo"
             android:layout_width="match_parent"

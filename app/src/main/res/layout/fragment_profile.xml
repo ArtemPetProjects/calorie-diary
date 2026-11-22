@@ -55,15 +55,6 @@
             android:orientation="horizontal">
 
             <Button style="@style/AppButton"
-                android:id="@+id/switchProfileButton"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:minWidth="0dp"
-                android:singleLine="true"
-                android:text="@string/switch_profile" />
-
-            <Button style="@style/AppButton"
                 android:id="@+id/deleteProfileButton"
                 android:layout_width="0dp"
                 android:layout_weight="1"
