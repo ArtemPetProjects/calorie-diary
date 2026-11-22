@@ -142,6 +142,38 @@ class ProductsView(private val activity: Activity) {
             carbsInput.setText(fmt(product.per100.carbs))
         }
 
+        var autoKcal = product == null
+        var updatingKcal = false
+        val macroWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (updatingKcal) return
+                val value = autoFilledKcal(
+                    autoKcal,
+                    kcalInput.text.toString(),
+                    readNumber(proteinInput),
+                    readNumber(fatInput),
+                    readNumber(carbsInput)
+                )
+                if (value != null) {
+                    updatingKcal = true
+                    kcalInput.setText(fmt(value))
+                    updatingKcal = false
+                }
+            }
+        }
+        proteinInput.addTextChangedListener(macroWatcher)
+        fatInput.addTextChangedListener(macroWatcher)
+        carbsInput.addTextChangedListener(macroWatcher)
+        kcalInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (!updatingKcal) autoKcal = false
+            }
+        })
+
         val title = if (product == null) R.string.add_product else R.string.product_name
         val dialog = AlertDialog.Builder(activity)
             .setTitle(title)
@@ -151,6 +183,7 @@ class ProductsView(private val activity: Activity) {
             .create()
 
         dialog.setOnShowListener {
+            dialog.focusAndShowKeyboard(nameInput, selectAll = product != null)
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
                 val name = nameInput.text.toString().trim()
                 val kcal = readNumber(kcalInput)

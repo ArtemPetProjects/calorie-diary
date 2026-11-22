@@ -341,6 +341,39 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         productInput.addTextChangedListener(watcher)
         weightInput.addTextChangedListener(watcher)
 
+        val newKcalInput = content.findViewById<EditText>(R.id.newKcalInput)
+        var newAutoKcal = true
+        var updatingNewKcal = false
+        val newMacroWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (updatingNewKcal) return
+                val value = autoFilledKcal(
+                    newAutoKcal,
+                    newKcalInput.text.toString(),
+                    readNumber(content, R.id.newProteinInput),
+                    readNumber(content, R.id.newFatInput),
+                    readNumber(content, R.id.newCarbsInput)
+                )
+                if (value != null) {
+                    updatingNewKcal = true
+                    newKcalInput.setText(fmt(value))
+                    updatingNewKcal = false
+                }
+            }
+        }
+        content.findViewById<EditText>(R.id.newProteinInput).addTextChangedListener(newMacroWatcher)
+        content.findViewById<EditText>(R.id.newFatInput).addTextChangedListener(newMacroWatcher)
+        content.findViewById<EditText>(R.id.newCarbsInput).addTextChangedListener(newMacroWatcher)
+        newKcalInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (!updatingNewKcal) newAutoKcal = false
+            }
+        })
+
         val dialog = android.app.AlertDialog.Builder(activity)
             .setTitle(R.string.add_product)
             .setView(content)
