@@ -61,7 +61,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
-        backupDatabase(db, "open")
+        Thread({ backupDatabase(db, "open") }, "db-backup").start()
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -118,12 +118,17 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.getDefault()).format(Date())
         val dest = File(dir, "diary-$stamp-$reason.db")
         try {
-            FileInputStream(db.path).use { input ->
-                FileOutputStream(dest).use { output -> input.copyTo(output) }
-            }
+            if (dest.exists()) dest.delete()
+            db.execSQL("VACUUM INTO '${dest.absolutePath}'")
         } catch (e: Exception) {
-            dest.delete()
-            return
+            try {
+                FileInputStream(db.path).use { input ->
+                    FileOutputStream(dest).use { output -> input.copyTo(output) }
+                }
+            } catch (e2: Exception) {
+                dest.delete()
+                return
+            }
         }
         val current = dir.listFiles { f -> f.name.startsWith("diary-") && f.name.endsWith(".db") }
             ?: emptyArray()
@@ -431,7 +436,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 6
+        private const val DB_VERSION = 5
         private const val ASSET_PRODUCTS = "products_extended.json"
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }

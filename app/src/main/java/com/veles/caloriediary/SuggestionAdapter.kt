@@ -17,6 +17,7 @@ class SuggestionAdapter(activity: Activity, products: List<Product>) :
     ArrayAdapter<Suggestion>(activity, R.layout.item_suggestion, products.map { Suggestion(it) }) {
 
     private val all = products.map { Suggestion(it) }
+    private val byName = all.associateBy { it.product.name.lowercase(Locale.getDefault()) }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val row = convertView ?: LayoutInflater.from(context)
@@ -35,8 +36,8 @@ class SuggestionAdapter(activity: Activity, products: List<Product>) :
             val query = constraint?.toString() ?: ""
             val names = all.map { it.product.name }
             val ranked = rankProductNames(names, query)
-            val byName = all.associateBy { it.product.name.lowercase(Locale.getDefault()) }
             val list = ranked.mapNotNull { byName[it.lowercase(Locale.getDefault())] }
+                .take(50)
             return FilterResults().apply {
                 values = list
                 count = list.size

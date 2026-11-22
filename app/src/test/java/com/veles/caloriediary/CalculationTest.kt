@@ -29,6 +29,7 @@ class CalculationTest {
         assertNull(parseGrams(""))
         assertNull(parseGrams("0"))
         assertNull(parseGrams("-5"))
+        assertNull(parseGrams("99999"))
     }
 
     @Test

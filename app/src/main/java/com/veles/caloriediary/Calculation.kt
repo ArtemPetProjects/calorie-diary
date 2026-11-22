@@ -111,7 +111,7 @@ fun rescale(values: Nutrients, fromGrams: Double, toGrams: Double): Nutrients? {
 
 fun parseGrams(raw: String): Double? {
     val value = raw.trim().replace(',', '.').toDoubleOrNull() ?: return null
-    return if (value > 0.0) value else null
+    return if (value > 0.0 && value <= 10_000.0) value else null
 }
 
 fun progress(current: Double, target: Double): Int {

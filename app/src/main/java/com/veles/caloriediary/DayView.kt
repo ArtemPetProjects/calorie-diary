@@ -98,7 +98,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         for (group in groupByMeal(entries)) {
             val box = LinearLayout(activity).apply {
                 orientation = LinearLayout.VERTICAL
-                background = activity.resources.getDrawable(R.drawable.meal_group_border, null)
+                background = activity.getDrawable(R.drawable.meal_group_border)
                 setPadding(8, 4, 8, 4)
                 layoutParams = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
@@ -156,21 +156,26 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             setText(fmt(entry.grams))
             hint = activity.getString(R.string.grams)
         }
-        android.app.AlertDialog.Builder(activity)
+        val dialog = android.app.AlertDialog.Builder(activity)
             .setTitle(R.string.edit_weight)
             .setView(input)
-            .setPositiveButton(R.string.save) { _, _ ->
+            .setPositiveButton(R.string.save, null)
+            .setNegativeButton(R.string.cancel, null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
                 val grams = parseGrams(input.text.toString())
                 val scaled = if (grams != null) rescale(entry.values, entry.grams, grams) else null
                 if (grams == null || scaled == null) {
                     Toast.makeText(activity, R.string.enter_weight, Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
+                    return@setOnClickListener
                 }
                 db.updateEntry(entry.id, grams, scaled)
+                dialog.dismiss()
                 refresh()
             }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        }
+        dialog.show()
     }
 
     private fun bindBar(barId: Int, valueId: Int, current: Double, target: Double) {
