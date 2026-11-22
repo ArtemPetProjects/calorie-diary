@@ -186,13 +186,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         val newFields = content.findViewById<LinearLayout>(R.id.newProductFields)
 
         val products = db.products()
-        productInput.setAdapter(
-            ArrayAdapter(
-                activity,
-                android.R.layout.simple_dropdown_item_1line,
-                products.map { ProductLabels.suggestion(activity, it) }
-            )
-        )
+        productInput.setAdapter(SuggestionAdapter(activity, products))
 
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
