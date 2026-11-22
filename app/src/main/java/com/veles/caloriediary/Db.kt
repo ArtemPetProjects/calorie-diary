@@ -46,6 +46,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
                 "kcal REAL, protein REAL, fat REAL, carbs REAL)"
         )
         createDishItems(db)
+        db.execSQL("CREATE TABLE weights (date TEXT PRIMARY KEY, kg REAL NOT NULL)")
 
         for (p in STARTER_PRODUCTS) {
             db.insertWithOnConflict("products", null, productValues(p), SQLiteDatabase.CONFLICT_IGNORE)
@@ -89,6 +90,9 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         }
         if (oldVersion < 4 && !hasColumn(db, "entries", "created_at")) {
             db.execSQL("ALTER TABLE entries ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0")
+        }
+        if (oldVersion < 6) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS weights (date TEXT PRIMARY KEY, kg REAL NOT NULL)")
         }
         if (oldVersion < 5 && !hasColumn(db, "products", "search_name")) {
             db.execSQL("ALTER TABLE products ADD COLUMN search_name TEXT NOT NULL DEFAULT ''")
@@ -382,6 +386,23 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         }
     }
 
+    fun weightFor(date: String): Double? {
+        val cursor = readableDatabase.query(
+            "weights", arrayOf("kg"), "date = ?", arrayOf(date), null, null, null
+        )
+        return cursor.use { c -> if (c.moveToFirst()) c.getDouble(0) else null }
+    }
+
+    fun saveWeight(date: String, kg: Double): Long {
+        val values = ContentValues().apply {
+            put("date", date)
+            put("kg", kg)
+        }
+        return writableDatabase.insertWithOnConflict(
+            "weights", null, values, SQLiteDatabase.CONFLICT_REPLACE
+        )
+    }
+
     private fun productValues(p: Product) = ContentValues().apply {
         put("name", p.name)
         put("search_name", p.name.lowercase())
@@ -436,7 +457,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 5
+        private const val DB_VERSION = 6
         private const val ASSET_PRODUCTS = "products_extended.json"
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }
