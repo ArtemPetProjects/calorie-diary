@@ -53,6 +53,49 @@
             android:layout_height="wrap_content"
             android:inputType="numberDecimal" />
 
+        <TextView
+            android:id="@+id/schemeHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
+            android:text="@string/scheme_hint" />
+
+        <Button style="@style/AppButton"
+            android:id="@+id/scheme0"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/scheme_0" />
+
+        <Button style="@style/AppButton"
+            android:id="@+id/scheme1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/scheme_1" />
+
+        <Button style="@style/AppButton"
+            android:id="@+id/scheme2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/scheme_2" />
+
+        <Button style="@style/AppButton"
+            android:id="@+id/scheme3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/scheme_3" />
+
+        <Button style="@style/AppButton"
+            android:id="@+id/scheme4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/scheme_4" />
+
         <Button style="@style/AppButton"
             android:id="@+id/saveTargetsButton"
             android:layout_width="match_parent"

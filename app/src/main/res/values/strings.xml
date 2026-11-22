@@ -45,4 +45,10 @@
     <string name="entry_macros">Б %1$s / Ж %2$s / У %3$s</string>
     <string name="meal_time">Приём пищи %1$s · %2$s ккал</string>
     <string name="meal_unknown">Без времени</string>
+    <string name="scheme_hint">Схемы БЖУ при вводе калорий</string>
+    <string name="scheme_0">Поддержание 15/30/55</string>
+    <string name="scheme_1">Похудение 28/27/45</string>
+    <string name="scheme_2">Набор мышц 25/25/50</string>
+    <string name="scheme_3">Низкоуглеводная 25/45/30</string>
+    <string name="scheme_4">Кето 10/70/20</string>
 </resources>
