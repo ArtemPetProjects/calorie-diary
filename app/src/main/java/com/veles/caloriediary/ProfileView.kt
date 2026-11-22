@@ -62,15 +62,15 @@ class ProfileView(private val activity: Activity) {
         updating = false
 
         val purposes = activity.resources.getStringArray(R.array.scheme_purposes)
-        val schemeLabels = MACRO_SCHEMES.mapIndexed { index, scheme ->
-            activity.getString(R.string.scheme_title, scheme.name, purposes.getOrElse(index) { "" }) +
-                "\n" + activity.getString(
-                R.string.scheme_details, scheme.proteinPct, scheme.fatPct, scheme.carbsPct
+        val schemeOptions = MACRO_SCHEMES.mapIndexed { index, scheme ->
+            SchemeOption(
+                activity.getString(R.string.scheme_title, scheme.name, purposes.getOrElse(index) { "" }),
+                activity.getString(
+                    R.string.scheme_details, scheme.proteinPct, scheme.fatPct, scheme.carbsPct
+                )
             )
         }
-        schemeSpinner.adapter = ArrayAdapter(
-            activity, android.R.layout.simple_spinner_dropdown_item, schemeLabels
-        )
+        schemeSpinner.adapter = SchemeAdapter(activity, schemeOptions)
         profileSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -112,6 +112,9 @@ class ProfileView(private val activity: Activity) {
         fatInput.setText(if (targets.fat > 0) fmt(targets.fat) else "")
         carbsInput.setText(if (targets.carbs > 0) fmt(targets.carbs) else "")
         updating = false
+        val schemesVisible = targets.kcal > 0
+        schemeHint.visibility = if (schemesVisible) View.VISIBLE else View.GONE
+        schemeSpinner.visibility = if (schemesVisible) View.VISIBLE else View.GONE
 
         listOf(proteinInput, fatInput, carbsInput).forEach { input ->
             input.addTextChangedListener(object : TextWatcher {
@@ -247,6 +250,9 @@ class ProfileView(private val activity: Activity) {
             row.findViewById<TextView>(R.id.schemeDetails).text = option.details
             return row
         }
+
+        override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View =
+            getView(position, convertView, parent)
     }
 
     companion object {

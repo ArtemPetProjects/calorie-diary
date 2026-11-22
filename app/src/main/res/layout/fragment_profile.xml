@@ -21,6 +21,7 @@
             android:text="@string/profile_label" />
 
         <Spinner
+            android:saveEnabled="false"
             android:id="@+id/profileSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
@@ -74,7 +75,8 @@
             android:id="@+id/targetKcalInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal" />
+            android:inputType="numberDecimal"
+            android:saveEnabled="false" />
 
         <TextView
             android:layout_width="match_parent"
@@ -86,7 +88,8 @@
             android:id="@+id/weightInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal" />
+            android:inputType="numberDecimal"
+            android:saveEnabled="false" />
 
         <Button style="@style/AppButton"
             android:id="@+id/mySchemeButton"
@@ -103,7 +106,8 @@
             android:id="@+id/targetProteinInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal" />
+            android:inputType="numberDecimal"
+            android:saveEnabled="false" />
 
         <TextView
             android:layout_width="match_parent"
@@ -114,7 +118,8 @@
             android:id="@+id/targetFatInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal" />
+            android:inputType="numberDecimal"
+            android:saveEnabled="false" />
 
         <TextView
             android:layout_width="match_parent"
@@ -125,7 +130,8 @@
             android:id="@+id/targetCarbsInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal" />
+            android:inputType="numberDecimal"
+            android:saveEnabled="false" />
 
         <TextView
             android:id="@+id/schemeHint"
@@ -136,6 +142,7 @@
             android:text="@string/scheme_hint" />
 
         <Spinner
+            android:saveEnabled="false"
             android:id="@+id/schemeSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
