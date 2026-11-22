@@ -5,8 +5,13 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import org.json.JSONArray
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION) {
+
+    private val appContext = context.applicationContext
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
@@ -37,6 +42,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         for (p in STARTER_PRODUCTS) {
             db.insertWithOnConflict("products", null, productValues(p), SQLiteDatabase.CONFLICT_IGNORE)
         }
+        importExtendedProducts(db)
         val t = ContentValues().apply {
             put("_id", 1L)
             putNutrients(this, DEFAULT_TARGETS)
@@ -62,6 +68,33 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
                 "UPDATE products SET is_custom = 1 WHERE name NOT IN ($placeholders)",
                 names.toTypedArray()
             )
+        }
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE entries ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0")
+            importExtendedProducts(db)
+        }
+    }
+
+    private fun importExtendedProducts(db: SQLiteDatabase) {
+        val stream = appContext.assets.open(ASSET_PRODUCTS)
+        val text = BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).use { it.readText() }
+        val array = JSONArray(text)
+        db.beginTransaction()
+        try {
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                val values = ContentValues().apply {
+                    put("name", item.getString("name"))
+                    put("kcal", item.getDouble("kcal"))
+                    put("protein", item.getDouble("protein"))
+                    put("fat", item.getDouble("fat"))
+                    put("carbs", item.getDouble("carbs"))
+                }
+                db.insertWithOnConflict("products", null, values, SQLiteDatabase.CONFLICT_IGNORE)
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
     }
 
@@ -217,6 +250,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             put("product_name", e.productName)
             put("grams", e.grams)
             putNutrients(this, e.values)
+            put("created_at", if (e.createdAt > 0L) e.createdAt else System.currentTimeMillis())
         }
         return writableDatabase.insert("entries", null, values)
     }
@@ -295,6 +329,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         productId = getLong(getColumnIndexOrThrow("product_id")),
         productName = getString(getColumnIndexOrThrow("product_name")),
         grams = getDouble(getColumnIndexOrThrow("grams")),
+        createdAt = getLong(getColumnIndexOrThrow("created_at")),
         values = Nutrients(
             kcal = getDouble(getColumnIndexOrThrow("kcal")),
             protein = getDouble(getColumnIndexOrThrow("protein")),
@@ -305,7 +340,8 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 2
+        private const val DB_VERSION = 3
+        private const val ASSET_PRODUCTS = "products_extended.json"
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }
 }
