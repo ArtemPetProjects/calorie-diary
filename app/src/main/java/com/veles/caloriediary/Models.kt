@@ -27,3 +27,5 @@ data class Entry(
 )
 
 data class Targets(val kcal: Double, val protein: Double, val fat: Double, val carbs: Double)
+
+data class Profile(val id: Long, val name: String, val bodyKg: Double)

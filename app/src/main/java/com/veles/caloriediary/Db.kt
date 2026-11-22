@@ -20,6 +20,14 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     private val appContext = context.applicationContext
 
+    private fun prefs() = appContext.getSharedPreferences(MainActivity.PREFS, Context.MODE_PRIVATE)
+
+    fun activeProfileId(): Long = prefs().getLong(KEY_ACTIVE_PROFILE, 1L)
+
+    fun setActiveProfile(id: Long) {
+        prefs().edit().putLong(KEY_ACTIVE_PROFILE, id).apply()
+    }
+
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
             "CREATE TABLE products (" +
@@ -32,8 +40,15 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
                 "search_name TEXT NOT NULL DEFAULT '')"
         )
         db.execSQL(
+            "CREATE TABLE profiles (" +
+                "_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "name TEXT NOT NULL UNIQUE, " +
+                "body_kg REAL NOT NULL DEFAULT 0)"
+        )
+        db.execSQL(
             "CREATE TABLE entries (" +
                 "_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "profile_id INTEGER NOT NULL DEFAULT 1, " +
                 "date TEXT NOT NULL, " +
                 "product_id INTEGER, " +
                 "product_name TEXT, " +
@@ -43,13 +58,25 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         )
         db.execSQL(
             "CREATE TABLE targets (" +
-                "_id INTEGER PRIMARY KEY CHECK(_id = 1), " +
+                "profile_id INTEGER PRIMARY KEY, " +
                 "kcal REAL, protein REAL, fat REAL, carbs REAL)"
         )
         createDishItems(db)
-        db.execSQL("CREATE TABLE weights (date TEXT PRIMARY KEY, kg REAL NOT NULL)")
-        db.execSQL("CREATE TABLE dish_drafts (_id INTEGER PRIMARY KEY CHECK(_id = 1), items_json TEXT NOT NULL)")
-        db.execSQL("CREATE TABLE product_usage (product_id INTEGER PRIMARY KEY, used_at INTEGER NOT NULL)")
+        db.execSQL(
+            "CREATE TABLE weights (profile_id INTEGER NOT NULL, date TEXT NOT NULL, " +
+                "kg REAL NOT NULL, PRIMARY KEY(profile_id, date))"
+        )
+        db.execSQL(
+            "CREATE TABLE dish_drafts (profile_id INTEGER PRIMARY KEY, items_json TEXT NOT NULL)"
+        )
+        db.execSQL(
+            "CREATE TABLE product_usage (profile_id INTEGER NOT NULL, product_id INTEGER NOT NULL, " +
+                "used_at INTEGER NOT NULL, PRIMARY KEY(profile_id, product_id))"
+        )
+        db.execSQL(
+            "CREATE TABLE adjustments (profile_id INTEGER NOT NULL, date TEXT NOT NULL, " +
+                "kcal_delta REAL NOT NULL DEFAULT 0, PRIMARY KEY(profile_id, date))"
+        )
 
         for (p in STARTER_PRODUCTS) {
             db.insertWithOnConflict("products", null, productValues(p), SQLiteDatabase.CONFLICT_IGNORE)
@@ -57,8 +84,10 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         importExtendedProducts(db)
         importBelarusProducts(db)
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_products_search ON products(search_name)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_entries_profile_date ON entries(profile_id, date)")
+        createDefaultProfile(db)
         val t = ContentValues().apply {
-            put("_id", 1L)
+            put("profile_id", 1L)
             putNutrients(this, DEFAULT_TARGETS)
         }
         db.insert("targets", null, t)
@@ -121,6 +150,151 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         }
         if (oldVersion < 9) {
             importBelarusProducts(db)
+        }
+        if (oldVersion < 10) {
+            migrateToProfiles(db)
+        }
+    }
+
+    private fun createDefaultProfile(db: SQLiteDatabase) {
+        val weight = appContext.getSharedPreferences(MainActivity.PREFS, Context.MODE_PRIVATE)
+            .getFloat(ProfileView.KEY_WEIGHT, 0f).toDouble()
+        val values = ContentValues().apply {
+            put("_id", 1L)
+            put("name", appContext.getString(R.string.default_profile))
+            put("body_kg", weight)
+        }
+        db.insertWithOnConflict("profiles", null, values, SQLiteDatabase.CONFLICT_IGNORE)
+    }
+
+    private fun hasTable(db: SQLiteDatabase, table: String): Boolean {
+        val cursor = db.rawQuery(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", arrayOf(table)
+        )
+        return cursor.use { it.moveToFirst() }
+    }
+
+    private fun renameBelarusProducts(db: SQLiteDatabase) {
+        val suffixes = listOf(
+            "Молочная капелька", "Асаблівае", "Савушкин продукт", "Молочный мир", "Бабушкина крынка"
+        )
+        val cursor = db.rawQuery("SELECT _id, name FROM products", null)
+        val update = db.compileStatement("UPDATE products SET name = ?, search_name = ? WHERE _id = ?")
+        cursor.use { c ->
+            while (c.moveToNext()) {
+                val id = c.getLong(0)
+                val name = c.getString(1)
+                for (suffix in suffixes) {
+                    val oldSuffix = " $suffix"
+                    if (name.endsWith(oldSuffix)) {
+                        val newName = name.removeSuffix(oldSuffix) + " ($suffix)"
+                        update.bindString(1, newName)
+                        update.bindString(2, newName.lowercase())
+                        update.bindLong(3, id)
+                        update.executeUpdateDelete()
+                        update.clearBindings()
+                        break
+                    }
+                }
+            }
+        }
+        update.close()
+    }
+
+    private fun migrateToProfiles(db: SQLiteDatabase) {
+        val ownTransaction = !db.inTransaction()
+        if (ownTransaction) db.beginTransaction()
+        try {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS profiles (" +
+                    "_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "name TEXT NOT NULL UNIQUE, body_kg REAL NOT NULL DEFAULT 0)"
+            )
+            createDefaultProfile(db)
+            renameBelarusProducts(db)
+            if (!hasColumn(db, "entries", "profile_id")) {
+                db.execSQL("ALTER TABLE entries ADD COLUMN profile_id INTEGER NOT NULL DEFAULT 1")
+            }
+
+            val weights = mutableListOf<Pair<String, Double>>()
+            if (hasTable(db, "weights")) {
+                val c = db.rawQuery("SELECT date, kg FROM weights", null)
+                c.use { cur ->
+                    while (cur.moveToNext()) weights.add(cur.getString(0) to cur.getDouble(1))
+                }
+            }
+            db.execSQL("DROP TABLE IF EXISTS weights")
+            db.execSQL(
+                "CREATE TABLE weights (profile_id INTEGER NOT NULL, date TEXT NOT NULL, " +
+                    "kg REAL NOT NULL, PRIMARY KEY(profile_id, date))"
+            )
+            for ((date, kg) in weights) {
+                val v = ContentValues().apply {
+                    put("profile_id", 1L); put("date", date); put("kg", kg)
+                }
+                db.insert("weights", null, v)
+            }
+
+            var oldTargets: Targets? = null
+            if (hasTable(db, "targets")) {
+                val c = db.rawQuery("SELECT kcal, protein, fat, carbs FROM targets LIMIT 1", null)
+                c.use { cur ->
+                    if (cur.moveToFirst()) {
+                        oldTargets = Targets(
+                            cur.getDouble(0), cur.getDouble(1), cur.getDouble(2), cur.getDouble(3)
+                        )
+                    }
+                }
+            }
+            db.execSQL("DROP TABLE IF EXISTS targets")
+            db.execSQL("CREATE TABLE targets (profile_id INTEGER PRIMARY KEY, kcal REAL, protein REAL, fat REAL, carbs REAL)")
+            val tv = ContentValues().apply {
+                put("profile_id", 1L)
+                putNutrients(this, oldTargets ?: DEFAULT_TARGETS)
+            }
+            db.insert("targets", null, tv)
+
+            val usage = mutableListOf<Pair<Long, Long>>()
+            if (hasTable(db, "product_usage")) {
+                val c = db.rawQuery("SELECT product_id, used_at FROM product_usage", null)
+                c.use { cur ->
+                    while (cur.moveToNext()) usage.add(cur.getLong(0) to cur.getLong(1))
+                }
+            }
+            db.execSQL("DROP TABLE IF EXISTS product_usage")
+            db.execSQL(
+                "CREATE TABLE product_usage (profile_id INTEGER NOT NULL, product_id INTEGER NOT NULL, " +
+                    "used_at INTEGER NOT NULL, PRIMARY KEY(profile_id, product_id))"
+            )
+            for ((productId, usedAt) in usage) {
+                val v = ContentValues().apply {
+                    put("profile_id", 1L); put("product_id", productId); put("used_at", usedAt)
+                }
+                db.insert("product_usage", null, v)
+            }
+
+            var oldDraft: String? = null
+            if (hasTable(db, "dish_drafts")) {
+                val c = db.rawQuery("SELECT items_json FROM dish_drafts LIMIT 1", null)
+                c.use { cur -> if (cur.moveToFirst()) oldDraft = cur.getString(0) }
+            }
+            db.execSQL("DROP TABLE IF EXISTS dish_drafts")
+            db.execSQL("CREATE TABLE dish_drafts (profile_id INTEGER PRIMARY KEY, items_json TEXT NOT NULL)")
+            if (oldDraft != null) {
+                val v = ContentValues().apply {
+                    put("profile_id", 1L); put("items_json", oldDraft)
+                }
+                db.insert("dish_drafts", null, v)
+            }
+
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS adjustments (profile_id INTEGER NOT NULL, date TEXT NOT NULL, " +
+                    "kcal_delta REAL NOT NULL DEFAULT 0, PRIMARY KEY(profile_id, date))"
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS idx_entries_profile_date ON entries(profile_id, date)")
+            if (ownTransaction) db.setTransactionSuccessful()
+        } finally {
+            if (ownTransaction) db.endTransaction()
         }
     }
 
@@ -347,7 +521,8 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     fun entries(date: String): List<Entry> {
         val cursor = readableDatabase.query(
-            "entries", null, "date = ?", arrayOf(date), null, null, "_id"
+            "entries", null, "profile_id = ? AND date = ?",
+            arrayOf(activeProfileId().toString(), date), null, null, "_id"
         )
         return cursor.use { c ->
             val result = mutableListOf<Entry>()
@@ -360,6 +535,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     fun addEntry(e: Entry): Long {
         val values = ContentValues().apply {
+            put("profile_id", activeProfileId())
             put("date", e.date)
             put("product_id", e.productId)
             put("product_name", e.productName)
@@ -385,7 +561,9 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
     }
 
     fun targets(): Targets {
-        val cursor = readableDatabase.query("targets", null, "_id = 1", null, null, null, null)
+        val cursor = readableDatabase.query(
+            "targets", null, "profile_id = ?", arrayOf(activeProfileId().toString()), null, null, null
+        )
         return cursor.use { c ->
             if (!c.moveToFirst()) return DEFAULT_TARGETS
             Targets(
@@ -398,29 +576,26 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
     }
 
     fun saveTargets(t: Targets) {
-        writableDatabase.beginTransaction()
-        try {
-            writableDatabase.delete("targets", null, null)
-            val values = ContentValues().apply {
-                put("_id", 1L)
-                putNutrients(this, t)
-            }
-            writableDatabase.insert("targets", null, values)
-            writableDatabase.setTransactionSuccessful()
-        } finally {
-            writableDatabase.endTransaction()
+        val values = ContentValues().apply {
+            put("profile_id", activeProfileId())
+            putNutrients(this, t)
         }
+        writableDatabase.insertWithOnConflict(
+            "targets", null, values, SQLiteDatabase.CONFLICT_REPLACE
+        )
     }
 
     fun weightFor(date: String): Double? {
         val cursor = readableDatabase.query(
-            "weights", arrayOf("kg"), "date = ?", arrayOf(date), null, null, null
+            "weights", arrayOf("kg"), "profile_id = ? AND date = ?",
+            arrayOf(activeProfileId().toString(), date), null, null, null
         )
         return cursor.use { c -> if (c.moveToFirst()) c.getDouble(0) else null }
     }
 
     fun saveWeight(date: String, kg: Double): Long {
         val values = ContentValues().apply {
+            put("profile_id", activeProfileId())
             put("date", date)
             put("kg", kg)
         }
@@ -432,6 +607,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
     fun markUsed(productId: Long) {
         if (productId <= 0L) return
         val values = ContentValues().apply {
+            put("profile_id", activeProfileId())
             put("product_id", productId)
             put("used_at", System.currentTimeMillis())
         }
@@ -442,7 +618,8 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     fun recentProductIds(): List<Long> {
         val cursor = readableDatabase.query(
-            "product_usage", arrayOf("product_id"), null, null, null, null, "used_at DESC"
+            "product_usage", arrayOf("product_id"), "profile_id = ?",
+            arrayOf(activeProfileId().toString()), null, null, "used_at DESC"
         )
         return cursor.use { c ->
             val result = mutableListOf<Long>()
@@ -466,7 +643,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             array.put(o)
         }
         val values = ContentValues().apply {
-            put("_id", 1L)
+            put("profile_id", activeProfileId())
             put("items_json", array.toString())
         }
         writableDatabase.insertWithOnConflict(
@@ -476,14 +653,16 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     fun hasDraft(): Boolean {
         val cursor = readableDatabase.query(
-            "dish_drafts", arrayOf("1"), "_id = 1", null, null, null, null
+            "dish_drafts", arrayOf("1"), "profile_id = ?",
+            arrayOf(activeProfileId().toString()), null, null, null
         )
         return cursor.use { it.moveToFirst() }
     }
 
     fun draftItems(): List<DishIngredient> {
         val cursor = readableDatabase.query(
-            "dish_drafts", arrayOf("items_json"), "_id = 1", null, null, null, null
+            "dish_drafts", arrayOf("items_json"), "profile_id = ?",
+            arrayOf(activeProfileId().toString()), null, null, null
         )
         val json = cursor.use { c -> if (c.moveToFirst()) c.getString(0) else null } ?: return emptyList()
         val array = try {
@@ -508,11 +687,100 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
     }
 
     fun clearDraft() {
-        writableDatabase.delete("dish_drafts", "_id = 1", null)
+        writableDatabase.delete("dish_drafts", "profile_id = ?", arrayOf(activeProfileId().toString()))
     }
 
     fun deleteWeight(date: String) {
-        writableDatabase.delete("weights", "date = ?", arrayOf(date))
+        writableDatabase.delete(
+            "weights", "profile_id = ? AND date = ?",
+            arrayOf(activeProfileId().toString(), date)
+        )
+    }
+
+    fun profiles(): List<Profile> {
+        val cursor = readableDatabase.query("profiles", null, null, null, null, null, "_id")
+        return cursor.use { c ->
+            val result = mutableListOf<Profile>()
+            while (c.moveToNext()) {
+                result.add(
+                    Profile(
+                        c.getLong(c.getColumnIndexOrThrow("_id")),
+                        c.getString(c.getColumnIndexOrThrow("name")),
+                        c.getDouble(c.getColumnIndexOrThrow("body_kg"))
+                    )
+                )
+            }
+            result
+        }
+    }
+
+    fun addProfile(name: String): Long {
+        val id = writableDatabase.insert(
+            "profiles", null, ContentValues().apply {
+                put("name", name.trim())
+                put("body_kg", 0.0)
+            }
+        )
+        if (id > 0) {
+            writableDatabase.insert(
+                "targets", null, ContentValues().apply {
+                    put("profile_id", id)
+                    putNutrients(this, DEFAULT_TARGETS)
+                }
+            )
+        }
+        return id
+    }
+
+    fun renameProfile(id: Long, name: String): Boolean {
+        if (name.isBlank()) return false
+        return writableDatabase.update(
+            "profiles", ContentValues().apply { put("name", name.trim()) },
+            "_id = ?", arrayOf(id.toString())
+        ) > 0
+    }
+
+    fun deleteProfile(id: Long): Boolean {
+        if (profiles().size <= 1) return false
+        writableDatabase.beginTransaction()
+        return try {
+            for (table in listOf("entries", "weights", "targets", "product_usage", "dish_drafts", "adjustments")) {
+                writableDatabase.delete(table, "profile_id = ?", arrayOf(id.toString()))
+            }
+            writableDatabase.delete("profiles", "_id = ?", arrayOf(id.toString()))
+            if (activeProfileId() == id) setActiveProfile(1L)
+            writableDatabase.setTransactionSuccessful()
+            true
+        } finally {
+            writableDatabase.endTransaction()
+        }
+    }
+
+    fun bodyWeight(): Double = profiles().firstOrNull { it.id == activeProfileId() }?.bodyKg ?: 0.0
+
+    fun saveBodyWeight(kg: Double) {
+        writableDatabase.update(
+            "profiles", ContentValues().apply { put("body_kg", kg) },
+            "_id = ?", arrayOf(activeProfileId().toString())
+        )
+    }
+
+    fun adjustmentFor(date: String): Double {
+        val cursor = readableDatabase.query(
+            "adjustments", arrayOf("kcal_delta"), "profile_id = ? AND date = ?",
+            arrayOf(activeProfileId().toString(), date), null, null, null
+        )
+        return cursor.use { c -> if (c.moveToFirst()) c.getDouble(0) else 0.0 }
+    }
+
+    fun saveAdjustment(date: String, delta: Double) {
+        writableDatabase.insertWithOnConflict(
+            "adjustments", null, ContentValues().apply {
+                put("profile_id", activeProfileId())
+                put("date", date)
+                put("kcal_delta", delta)
+            }, SQLiteDatabase.CONFLICT_REPLACE
+        )
     }
 
     private fun productValues(p: Product) = ContentValues().apply {
@@ -569,9 +837,10 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 9
+        private const val DB_VERSION = 10
         private const val ASSET_PRODUCTS = "products_extended.json"
         private const val ASSET_BELARUS = "products_belarus.json"
+        private const val KEY_ACTIVE_PROFILE = "active_profile_id"
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }
 }
