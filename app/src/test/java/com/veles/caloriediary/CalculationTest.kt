@@ -201,4 +201,31 @@ class CalculationTest {
             weekDates("2026-01-01")
         )
     }
+
+    @Test
+    fun manualKcalIsNeverOverwritten() {
+        assertNull(autoFilledKcal(false, "235", 0.0, 0.0, 0.0))
+    }
+
+    @Test
+    fun incompleteMacrosDoNotProduceKcal() {
+        assertNull(autoFilledKcal(false, "", 10.0, null, 30.0))
+    }
+
+    @Test
+    fun autoFilledKcalIsRecalculatedWhenMacrosChange() {
+        assertEquals(85.0, autoFilledKcal(true, "340.0", 5.0, 5.0, 5.0))
+    }
+
+    @Test
+    fun blankKcalIsFilledFromMacros() {
+        assertEquals(340.0, autoFilledKcal(false, "", 10.0, 20.0, 30.0))
+    }
+
+    @Test
+    fun progressPercentHandlesZeroAndOverflow() {
+        assertEquals(0, progressPercent(100.0, 0.0))
+        assertEquals(25, progressPercent(50.0, 200.0))
+        assertEquals(100, progressPercent(250.0, 200.0))
+    }
 }

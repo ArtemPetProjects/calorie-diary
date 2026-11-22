@@ -48,6 +48,19 @@ val MACRO_SCHEMES = listOf(
 fun kcalFromMacros(protein: Double, fat: Double, carbs: Double): Double =
     round1(protein * 4.0 + fat * 9.0 + carbs * 4.0)
 
+// Автоподстановка калорий из БЖУ: ручное значение пользователя не перетирается.
+fun autoFilledKcal(
+    autoFilled: Boolean,
+    current: String,
+    protein: Double?,
+    fat: Double?,
+    carbs: Double?
+): Double? {
+    if (protein == null || fat == null || carbs == null) return null
+    if (!autoFilled && current.isNotBlank()) return null
+    return kcalFromMacros(protein, fat, carbs)
+}
+
 fun gramsFromScheme(kcal: Double, scheme: MacroScheme): Targets = Targets(
     kcal = kcal,
     protein = round1(kcal * scheme.proteinPct / 100.0 / 4.0),
@@ -142,6 +155,8 @@ fun progress(current: Double, target: Double): Int {
     if (target <= 0.0) return 0
     return ((current / target) * 100.0).toInt().coerceIn(0, 100)
 }
+
+fun progressPercent(current: Double, target: Double): Int = progress(current, target)
 
 fun dateKey(year: Int, month: Int, day: Int): String =
     "%04d-%02d-%02d".format(year, month, day)
