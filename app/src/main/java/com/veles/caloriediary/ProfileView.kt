@@ -30,6 +30,7 @@ class ProfileView(private val activity: Activity) {
     private val schemeHint: TextView = view.findViewById(R.id.schemeHint)
     private val schemeSpinner: Spinner = view.findViewById(R.id.schemeSpinner)
     private var updating = false
+    private var schemeUpdating = false
     private val profileSpinner: Spinner = view.findViewById(R.id.profileSpinner)
     private var profiles = db.profiles()
 
@@ -62,15 +63,28 @@ class ProfileView(private val activity: Activity) {
         updating = false
 
         val purposes = activity.resources.getStringArray(R.array.scheme_purposes)
-        val schemeOptions = MACRO_SCHEMES.mapIndexed { index, scheme ->
+        val schemeOptions = mutableListOf(
             SchemeOption(
-                activity.getString(R.string.scheme_title, scheme.name, purposes.getOrElse(index) { "" }),
-                activity.getString(
-                    R.string.scheme_details, scheme.proteinPct, scheme.fatPct, scheme.carbsPct
+                activity.getString(R.string.scheme_own_title),
+                activity.getString(R.string.scheme_own_details)
+            )
+        )
+        MACRO_SCHEMES.forEachIndexed { index, scheme ->
+            schemeOptions.add(
+                SchemeOption(
+                    activity.getString(R.string.scheme_title, scheme.name, purposes.getOrElse(index) { "" }),
+                    activity.getString(
+                        R.string.scheme_details, scheme.proteinPct, scheme.fatPct, scheme.carbsPct
+                    )
                 )
             )
         }
         schemeSpinner.adapter = SchemeAdapter(activity, schemeOptions)
+        val savedScheme = db.schemeForProfile()
+        val schemeSelection = if (savedScheme in MACRO_SCHEMES.indices) savedScheme + 1 else 0
+        schemeUpdating = true
+        schemeSpinner.setSelection(schemeSelection)
+        schemeSpinner.post { schemeUpdating = false }
         profileSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -136,12 +150,18 @@ class ProfileView(private val activity: Activity) {
         schemeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (!updating && position in MACRO_SCHEMES.indices && readNumber(kcalInput) != null) {
-                    try {
-                        applyScheme(position)
-                    } catch (e: Exception) {
-                        Toast.makeText(activity, R.string.scheme_error, Toast.LENGTH_SHORT).show()
-                    }
+                if (schemeUpdating || updating) return
+                if (position == 0) {
+                    db.saveScheme(-1)
+                    return
+                }
+                val schemeIndex = position - 1
+                if (schemeIndex !in MACRO_SCHEMES.indices || readNumber(kcalInput) == null) return
+                db.saveScheme(schemeIndex)
+                try {
+                    applyScheme(schemeIndex)
+                } catch (e: Exception) {
+                    Toast.makeText(activity, R.string.scheme_error, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -177,6 +197,10 @@ class ProfileView(private val activity: Activity) {
             updating = false
             db.saveBodyWeight(weight)
             db.saveTargets(targets)
+            db.saveScheme(-1)
+            schemeUpdating = true
+            schemeSpinner.setSelection(0)
+            schemeSpinner.post { schemeUpdating = false }
             Toast.makeText(activity, R.string.targets_saved, Toast.LENGTH_SHORT).show()
         }
 

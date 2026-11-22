@@ -28,6 +28,12 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         prefs().edit().putLong(KEY_ACTIVE_PROFILE, id).apply()
     }
 
+    fun schemeForProfile(): Int = prefs().getInt("${KEY_SCHEME_PREFIX}${activeProfileId()}", -1)
+
+    fun saveScheme(index: Int) {
+        prefs().edit().putInt("${KEY_SCHEME_PREFIX}${activeProfileId()}", index).apply()
+    }
+
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
             "CREATE TABLE products (" +
@@ -1002,6 +1008,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         private const val ASSET_PRODUCTS = "products_extended.json"
         private const val ASSET_BELARUS = "products_belarus.json"
         private const val KEY_ACTIVE_PROFILE = "active_profile_id"
+        private const val KEY_SCHEME_PREFIX = "scheme_"
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }
 }

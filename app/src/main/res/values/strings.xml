@@ -67,6 +67,8 @@
     <string name="scheme_details">Соотношение БЖУ: белки %1$d%% · жиры %2$d%% · углеводы %3$d%%</string>
     <string name="scheme_title">%1$s — %2$s</string>
     <string name="scheme_error">Не удалось применить схему</string>
+    <string name="scheme_own_title">Моя схема по весу</string>
+    <string name="scheme_own_details">Сохранить текущие цели без изменения</string>
     <string-array name="scheme_purposes">
         <item>базовый сбалансированный рацион по ВОЗ</item>
         <item>середины рекомендуемых диапазонов IOM</item>
