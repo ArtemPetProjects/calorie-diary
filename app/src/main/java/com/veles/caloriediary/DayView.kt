@@ -186,6 +186,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             .setNegativeButton(R.string.cancel, null)
             .create()
         dialog.setOnShowListener {
+            dialog.focusAndShowKeyboard(input, selectAll = true)
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
                 val raw = input.text.toString().trim()
                 if (raw.isEmpty()) {
@@ -223,6 +224,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             .setNegativeButton(R.string.cancel, null)
             .create()
         dialog.setOnShowListener {
+            dialog.focusAndShowKeyboard(input, selectAll = true)
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
                 val grams = parseGrams(input.text.toString())
                 val scaled = if (grams != null) rescale(entry.values, entry.grams, grams) else null
@@ -240,7 +242,11 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
 
     private fun bindBar(barId: Int, valueId: Int, current: Double, target: Double) {
         view.findViewById<ProgressBar>(barId).progress = progress(current, target)
-        view.findViewById<TextView>(valueId).text = "${fmt(current)} / ${fmt(target)}"
+        val percent = progressPercent(current, target)
+        val remaining = maxOf(0.0, target - current)
+        view.findViewById<TextView>(valueId).text = activity.getString(
+            R.string.progress_value, fmt(current), fmt(target), percent, fmt(remaining)
+        )
     }
 
     private fun renderWeek() {
@@ -387,8 +393,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             WindowManager.LayoutParams.WRAP_CONTENT
         )
         dialog.setOnShowListener {
-            dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
-            productInput.requestFocus()
+            dialog.focusAndShowKeyboard(productInput)
             productInput.post { productInput.showDropDown() }
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
                 val name = ProductLabels.nameOf(productInput.text.toString())
