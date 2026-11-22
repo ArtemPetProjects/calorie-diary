@@ -89,6 +89,26 @@ fun groupByMeal(entries: List<Entry>, windowMs: Long = 3_600_000L): List<MealGro
     return result
 }
 
+// Сначала точные начала совпадений, затем остальные.
+fun rankProductNames(names: List<String>, query: String): List<String> {
+    if (query.isBlank()) return names
+    val q = query.trim().lowercase()
+    val lowered = names.map { it.lowercase() }
+    return names.indices.filter { lowered[it].startsWith(q) }.map { names[it] } +
+        names.indices.filter { !lowered[it].startsWith(q) && lowered[it].contains(q) }.map { names[it] }
+}
+
+fun rescale(values: Nutrients, fromGrams: Double, toGrams: Double): Nutrients? {
+    if (fromGrams <= 0.0 || toGrams <= 0.0) return null
+    val k = toGrams / fromGrams
+    return Nutrients(
+        kcal = round1(values.kcal * k),
+        protein = round1(values.protein * k),
+        fat = round1(values.fat * k),
+        carbs = round1(values.carbs * k)
+    )
+}
+
 fun parseGrams(raw: String): Double? {
     val value = raw.trim().replace(',', '.').toDoubleOrNull() ?: return null
     return if (value > 0.0) value else null

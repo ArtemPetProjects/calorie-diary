@@ -144,6 +144,27 @@ class CalculationTest {
     }
 
     @Test
+    fun rankProductNamesPrefersPrefixMatches() {
+        val names = listOf("Булка со сливой", "Слива", "Сливы сушёные", "Яблоко")
+        assertEquals(
+            listOf("Слива", "Сливы сушёные", "Булка со сливой"),
+            rankProductNames(names, "сли")
+        )
+        assertEquals(names, rankProductNames(names, ""))
+    }
+
+    @Test
+    fun rescaleRecalculatesEntryMacros() {
+        val values = Nutrients(100.0, 10.0, 20.0, 30.0)
+        val scaled = rescale(values, 100.0, 200.0)!!
+        assertEquals(200.0, scaled.kcal, 0.01)
+        assertEquals(20.0, scaled.protein, 0.01)
+        assertEquals(40.0, scaled.fat, 0.01)
+        assertEquals(60.0, scaled.carbs, 0.01)
+        assertNull(rescale(values, 0.0, 100.0))
+    }
+
+    @Test
     fun weekDatesCrossesMonthAndLeapDay() {
         assertEquals(
             listOf(
