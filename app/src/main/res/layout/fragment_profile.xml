@@ -12,6 +12,61 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="@string/profile_label" />
+
+        <Spinner
+            android:id="@+id/profileSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button style="@style/AppButton"
+                android:id="@+id/addProfileButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="@string/add_profile" />
+
+            <Button style="@style/AppButton"
+                android:id="@+id/renameProfileButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="@string/rename_profile" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button style="@style/AppButton"
+                android:id="@+id/switchProfileButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="@string/switch_profile" />
+
+            <Button style="@style/AppButton"
+                android:id="@+id/deleteProfileButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="@string/delete_profile" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:text="@string/kcal" />
 
         <EditText
