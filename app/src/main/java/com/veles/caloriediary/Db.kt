@@ -55,6 +55,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             db.insertWithOnConflict("products", null, productValues(p), SQLiteDatabase.CONFLICT_IGNORE)
         }
         importExtendedProducts(db)
+        importBelarusProducts(db)
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_products_search ON products(search_name)")
         val t = ContentValues().apply {
             put("_id", 1L)
@@ -118,6 +119,9 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         if (oldVersion < 8) {
             db.execSQL("CREATE TABLE IF NOT EXISTS product_usage (product_id INTEGER PRIMARY KEY, used_at INTEGER NOT NULL)")
         }
+        if (oldVersion < 9) {
+            importBelarusProducts(db)
+        }
     }
 
     private fun backupDatabase(db: SQLiteDatabase, reason: String) {
@@ -164,8 +168,14 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         }
     }
 
-    private fun importExtendedProducts(db: SQLiteDatabase) {
-        val stream = appContext.assets.open(ASSET_PRODUCTS)
+    private fun importExtendedProducts(db: SQLiteDatabase) =
+        importProductsFromAsset(db, ASSET_PRODUCTS)
+
+    private fun importBelarusProducts(db: SQLiteDatabase) =
+        importProductsFromAsset(db, ASSET_BELARUS)
+
+    private fun importProductsFromAsset(db: SQLiteDatabase, assetName: String) {
+        val stream = appContext.assets.open(assetName)
         val text = BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).use { it.readText() }
         val array = JSONArray(text)
         val statement = db.compileStatement(
@@ -556,8 +566,9 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 8
+        private const val DB_VERSION = 9
         private const val ASSET_PRODUCTS = "products_extended.json"
+        private const val ASSET_BELARUS = "products_belarus.json"
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }
 }
