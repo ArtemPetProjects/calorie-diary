@@ -13,7 +13,10 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             "CREATE TABLE products (" +
                 "_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "name TEXT UNIQUE NOT NULL, " +
-                "kcal REAL, protein REAL, fat REAL, carbs REAL)"
+                "kcal REAL, protein REAL, fat REAL, carbs REAL, " +
+                "is_dish INTEGER NOT NULL DEFAULT 0, " +
+                "is_custom INTEGER NOT NULL DEFAULT 0, " +
+                "final_grams REAL NOT NULL DEFAULT 0)"
         )
         db.execSQL(
             "CREATE TABLE entries (" +
@@ -29,9 +32,10 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
                 "_id INTEGER PRIMARY KEY CHECK(_id = 1), " +
                 "kcal REAL, protein REAL, fat REAL, carbs REAL)"
         )
+        createDishItems(db)
 
         for (p in STARTER_PRODUCTS) {
-            db.insert("products", null, productValues(p))
+            db.insertWithOnConflict("products", null, productValues(p), SQLiteDatabase.CONFLICT_IGNORE)
         }
         val t = ContentValues().apply {
             put("_id", 1L)
@@ -41,11 +45,36 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Первая версия схемы: миграций пока нет.
+        if (oldVersion < 2) {
+            db.execSQL("ALTER TABLE products ADD COLUMN is_dish INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE products ADD COLUMN is_custom INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE products ADD COLUMN final_grams REAL NOT NULL DEFAULT 0")
+            createDishItems(db)
+        }
     }
 
-    fun products(query: String = ""): List<Product> {
-        val cursor = readableDatabase.query("products", null, null, null, null, null, "name")
+    private fun createDishItems(db: SQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS dish_items (" +
+                "_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "dish_id INTEGER, " +
+                "product_id INTEGER, " +
+                "product_name TEXT, " +
+                "grams REAL, " +
+                "kcal REAL, protein REAL, fat REAL, carbs REAL)"
+        )
+    }
+
+    fun products(
+        query: String = "",
+        onlyCustom: Boolean = false,
+        onlyDishes: Boolean = false
+    ): List<Product> {
+        val conditions = mutableListOf<String>()
+        if (onlyCustom) conditions.add("is_custom = 1")
+        if (onlyDishes) conditions.add("is_dish = 1")
+        val where = if (conditions.isEmpty()) null else conditions.joinToString(" AND ")
+        val cursor = readableDatabase.query("products", null, where, null, null, null, "name")
         return cursor.use { c ->
             val result = mutableListOf<Product>()
             while (c.moveToNext()) {
@@ -68,8 +97,83 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         }
     }
 
+    fun saveDish(
+        name: String,
+        finalGrams: Double,
+        per100: Nutrients,
+        items: List<DishIngredient>,
+        dishId: Long = 0L
+    ): Long {
+        var savedId = -1L
+        writableDatabase.beginTransaction()
+        try {
+            val values = ContentValues().apply {
+                put("name", name)
+                putNutrients(this, per100)
+                put("is_dish", 1)
+                put("is_custom", 1)
+                put("final_grams", finalGrams)
+            }
+            savedId = if (dishId > 0) {
+                writableDatabase.update("products", values, "_id = ?", arrayOf(dishId.toString()))
+                dishId
+            } else {
+                writableDatabase.insert("products", null, values)
+            }
+            if (savedId > 0) {
+                writableDatabase.delete("dish_items", "dish_id = ?", arrayOf(savedId.toString()))
+                for (item in items) {
+                    val iv = ContentValues().apply {
+                        put("dish_id", savedId)
+                        put("product_id", item.productId)
+                        put("product_name", item.productName)
+                        put("grams", item.grams)
+                        putNutrients(this, item.per100)
+                    }
+                    writableDatabase.insert("dish_items", null, iv)
+                }
+            }
+            writableDatabase.setTransactionSuccessful()
+        } finally {
+            writableDatabase.endTransaction()
+        }
+        return savedId
+    }
+
+    fun dishItems(dishId: Long): List<DishIngredient> {
+        val cursor = readableDatabase.query(
+            "dish_items", null, "dish_id = ?", arrayOf(dishId.toString()), null, null, "_id"
+        )
+        return cursor.use { c ->
+            val result = mutableListOf<DishIngredient>()
+            while (c.moveToNext()) {
+                result.add(
+                    DishIngredient(
+                        productId = c.getLong(c.getColumnIndexOrThrow("product_id")),
+                        productName = c.getString(c.getColumnIndexOrThrow("product_name")),
+                        grams = c.getDouble(c.getColumnIndexOrThrow("grams")),
+                        per100 = Nutrients(
+                            kcal = c.getDouble(c.getColumnIndexOrThrow("kcal")),
+                            protein = c.getDouble(c.getColumnIndexOrThrow("protein")),
+                            fat = c.getDouble(c.getColumnIndexOrThrow("fat")),
+                            carbs = c.getDouble(c.getColumnIndexOrThrow("carbs"))
+                        )
+                    )
+                )
+            }
+            result
+        }
+    }
+
     fun deleteProduct(id: Long) {
-        writableDatabase.delete("products", "_id = ?", arrayOf(id.toString()))
+        writableDatabase.beginTransaction()
+        try {
+            writableDatabase.delete("dish_items", "dish_id = ?", arrayOf(id.toString()))
+            writableDatabase.delete("products", "_id = ?", arrayOf(id.toString()))
+            writableDatabase.setTransactionSuccessful()
+        } finally {
+            writableDatabase.endTransaction()
+        }
     }
 
     fun entries(date: String): List<Entry> {
@@ -114,17 +218,26 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
     }
 
     fun saveTargets(t: Targets) {
-        writableDatabase.delete("targets", null, null)
-        val values = ContentValues().apply {
-            put("_id", 1L)
-            putNutrients(this, t)
+        writableDatabase.beginTransaction()
+        try {
+            writableDatabase.delete("targets", null, null)
+            val values = ContentValues().apply {
+                put("_id", 1L)
+                putNutrients(this, t)
+            }
+            writableDatabase.insert("targets", null, values)
+            writableDatabase.setTransactionSuccessful()
+        } finally {
+            writableDatabase.endTransaction()
         }
-        writableDatabase.insert("targets", null, values)
     }
 
     private fun productValues(p: Product) = ContentValues().apply {
         put("name", p.name)
         putNutrients(this, p.per100)
+        put("is_dish", if (p.isDish) 1 else 0)
+        put("is_custom", if (p.isCustom) 1 else 0)
+        put("final_grams", p.finalGrams)
     }
 
     private fun putNutrients(values: ContentValues, n: Nutrients) {
@@ -149,7 +262,10 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             protein = getDouble(getColumnIndexOrThrow("protein")),
             fat = getDouble(getColumnIndexOrThrow("fat")),
             carbs = getDouble(getColumnIndexOrThrow("carbs"))
-        )
+        ),
+        finalGrams = getDouble(getColumnIndexOrThrow("final_grams")),
+        isDish = getInt(getColumnIndexOrThrow("is_dish")) == 1,
+        isCustom = getInt(getColumnIndexOrThrow("is_custom")) == 1
     )
 
     private fun Cursor.toEntry() = Entry(
@@ -168,7 +284,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 1
+        private const val DB_VERSION = 2
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }
 }

@@ -1,6 +1,13 @@
 package com.veles.caloriediary
 
-data class Product(val id: Long, val name: String, val per100: Nutrients)
+data class Product(
+    val id: Long,
+    val name: String,
+    val per100: Nutrients,
+    val finalGrams: Double = 0.0,
+    val isDish: Boolean = false,
+    val isCustom: Boolean = false
+)
 
 data class DishIngredient(
     val productId: Long,
