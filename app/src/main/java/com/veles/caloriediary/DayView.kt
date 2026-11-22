@@ -5,6 +5,7 @@ import android.app.DatePickerDialog
 import android.app.Dialog
 import android.graphics.Color
 import android.text.Editable
+import android.util.TypedValue
 import android.text.TextWatcher
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -126,17 +127,10 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
 
         entryList.removeAllViews()
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        for ((index, group) in groupByMeal(entries).withIndex()) {
+        for (group in groupByMeal(entries)) {
             val box = LinearLayout(activity).apply {
                 orientation = LinearLayout.VERTICAL
-                background = activity.getDrawable(
-                    when (index % 4) {
-                        0 -> R.drawable.meal_border_0
-                        1 -> R.drawable.meal_border_1
-                        2 -> R.drawable.meal_border_2
-                        else -> R.drawable.meal_border_3
-                    }
-                )
+                background = activity.getDrawable(R.drawable.meal_group_border)
                 setPadding(8, 4, 8, 4)
                 layoutParams = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
@@ -151,7 +145,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             }
             val header = TextView(activity)
             header.text = (if (collapsed) "▶ " else "▼ ") + baseText
-            header.textSize = 16f
+            header.textSize = 17f
             header.setTypeface(null, android.graphics.Typeface.BOLD)
             val items = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
             items.visibility = if (collapsed) View.GONE else View.VISIBLE
@@ -206,7 +200,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             .setPositiveButton(R.string.save, null)
             .setNegativeButton(R.string.cancel, null)
             .create()
-        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        dialog.prepareForKeyboard()
         dialog.setOnShowListener {
             dialog.focusAndShowKeyboard(input, selectAll = true)
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
@@ -245,6 +239,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             .setPositiveButton(R.string.save, null)
             .setNegativeButton(R.string.cancel, null)
             .create()
+        dialog.prepareForKeyboard()
         dialog.setOnShowListener {
             dialog.focusAndShowKeyboard(input, selectAll = true)
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
@@ -293,7 +288,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             val button = Button(activity)
             button.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             button.minWidth = 0
-            button.textSize = 12f
+            button.textSize = 13f
             button.text = "${weekDayName(i)}\n$day"
             button.setBackgroundColor(
                 if (key == selectedDate) Color.rgb(180, 220, 180) else Color.TRANSPARENT
@@ -347,7 +342,15 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         adapter.showInitial()
         productInput.setAdapter(adapter)
         productInput.threshold = 0
-        productInput.dropDownWidth = ViewGroup.LayoutParams.MATCH_PARENT
+        productInput.post {
+            val width = productInput.width
+            if (width > 0) {
+                val inset = TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP, 20f, activity.resources.displayMetrics
+                ).toInt()
+                productInput.dropDownWidth = (width - inset).coerceAtLeast(width / 2)
+            }
+        }
         val maxDrop = (activity.resources.displayMetrics.heightPixels * 0.5f).toInt()
         productInput.dropDownHeight = minOf((480f * activity.resources.displayMetrics.density).toInt(), maxDrop)
 
@@ -412,6 +415,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             .setNegativeButton(R.string.cancel, null)
             .create()
 
+        dialog.prepareForKeyboard()
         dialog.window?.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL)
         dialog.window?.setLayout(
             WindowManager.LayoutParams.MATCH_PARENT,

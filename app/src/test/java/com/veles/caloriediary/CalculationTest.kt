@@ -2,6 +2,7 @@ package com.veles.caloriediary
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CalculationTest {
@@ -79,15 +80,15 @@ class CalculationTest {
 
     @Test
     fun macroSchemesGiveGrams() {
-        assertEquals(5, MACRO_SCHEMES.size)
+        assertEquals(10, MACRO_SCHEMES.size)
         for (scheme in MACRO_SCHEMES) {
             assertEquals(100, scheme.proteinPct + scheme.fatPct + scheme.carbsPct)
         }
         val targets = gramsFromScheme(2000.0, MACRO_SCHEMES.first())
         assertEquals(2000.0, targets.kcal, 0.01)
         assertEquals(75.0, targets.protein, 0.01)
-        assertEquals(66.7, targets.fat, 0.01)
-        assertEquals(275.0, targets.carbs, 0.01)
+        assertEquals(55.6, targets.fat, 0.01)
+        assertEquals(300.0, targets.carbs, 0.01)
     }
 
     @Test
@@ -238,6 +239,12 @@ class CalculationTest {
     @Test
     fun allZeroMacrosKeepManualKcal() {
         assertNull(autoFilledKcal(true, "235", 0.0, 0.0, 0.0))
+    }
+
+    @Test
+    fun tenMacroSchemesAreBalanced() {
+        assertEquals(10, MACRO_SCHEMES.size)
+        assertTrue(MACRO_SCHEMES.all { it.proteinPct + it.fatPct + it.carbsPct == 100 })
     }
 
     @Test

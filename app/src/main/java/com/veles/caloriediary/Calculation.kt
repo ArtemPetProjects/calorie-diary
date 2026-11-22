@@ -39,9 +39,14 @@ fun dishPer100(items: List<DishIngredient>, finalGrams: Double): Nutrients? {
 data class MacroScheme(val name: String, val proteinPct: Int, val fatPct: Int, val carbsPct: Int)
 
 val MACRO_SCHEMES = listOf(
-    MacroScheme("Поддержание", 15, 30, 55),
-    MacroScheme("Похудение", 28, 27, 45),
-    MacroScheme("Набор мышц", 25, 25, 50),
+    MacroScheme("ВОЗ — сбалансированная", 15, 25, 60),
+    MacroScheme("IOM — средняя AMDR", 20, 30, 50),
+    MacroScheme("DASH", 18, 27, 55),
+    MacroScheme("Средиземноморская", 20, 35, 45),
+    MacroScheme("Зона", 30, 30, 40),
+    MacroScheme("Аткинс", 30, 60, 10),
+    MacroScheme("Низкожировая", 20, 15, 65),
+    MacroScheme("Высокобелковая", 35, 25, 40),
     MacroScheme("Низкоуглеводная", 25, 45, 30),
     MacroScheme("Кето", 10, 70, 20)
 )

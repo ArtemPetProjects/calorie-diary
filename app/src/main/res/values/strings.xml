@@ -51,6 +51,18 @@
     <string name="scheme_2">Набор мышц 25/25/50</string>
     <string name="scheme_3">Низкоуглеводная 25/45/30</string>
     <string name="scheme_4">Кето 10/70/20</string>
+    <string-array name="macro_schemes">
+        <item>ВОЗ — сбалансированная</item>
+        <item>IOM — средняя AMDR</item>
+        <item>DASH</item>
+        <item>Средиземноморская</item>
+        <item>Зона</item>
+        <item>Аткинс</item>
+        <item>Низкожировая</item>
+        <item>Высокобелковая</item>
+        <item>Низкоуглеводная</item>
+        <item>Кето</item>
+    </string-array>
     <string name="portion_preview">%1$s ккал • Б %2$s / Ж %3$s / У %4$s за порцию</string>
     <string name="product_suggestion">%1$s • %2$s ккал / Б %3$s / Ж %4$s / У %5$s на 100 г</string>
     <string name="body_weight">Вес тела, кг</string>
@@ -74,10 +86,12 @@
     <string name="invalid_adjustment">Некорректное значение корректировки</string>
     <string name="progress_excess">%1$s / %2$s · %3$d%% · превышение +%4$s</string>
     <string name="profile_label">Профиль</string>
-    <string name="add_profile">Добавить профиль</string>
-    <string name="rename_profile">Переименовать</string>
-    <string name="delete_profile">Удалить профиль</string>
-    <string name="switch_profile">Переключить</string>
+    <string name="add_profile">Добавить</string>
+    <string name="rename_profile">Изменить</string>
+    <string name="delete_profile">Удалить</string>
+    <string name="switch_profile">Выбрать</string>
+    <string name="filter_mine_short">Моё</string>
+    <string name="filter_dishes_short">Блюда</string>
     <string name="delete_profile_confirm">Удалить профиль и все его записи, вес и цели?</string>
     <string name="profile_name_hint">Название профиля</string>
 </resources>

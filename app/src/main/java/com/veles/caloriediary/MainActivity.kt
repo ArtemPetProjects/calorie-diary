@@ -1,6 +1,7 @@
 package com.veles.caloriediary
 
 import android.app.Activity
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -43,6 +44,17 @@ class MainActivity : Activity() {
 
     private fun select(tab: String) {
         activeTab = tab
+        val ta = obtainStyledAttributes(
+            intArrayOf(R.attr.blockDay, R.attr.blockProducts, R.attr.blockProfile, android.R.attr.textColorSecondary)
+        )
+        val dayColor = ta.getColor(0, Color.GRAY)
+        val productsColor = ta.getColor(1, Color.GRAY)
+        val profileColor = ta.getColor(2, Color.GRAY)
+        val inactiveColor = ta.getColor(3, Color.GRAY)
+        ta.recycle()
+        findViewById<Button>(R.id.tabDay).setTextColor(if (tab == TAB_DAY) dayColor else inactiveColor)
+        findViewById<Button>(R.id.tabProducts).setTextColor(if (tab == TAB_PRODUCTS) productsColor else inactiveColor)
+        findViewById<Button>(R.id.tabProfile).setTextColor(if (tab == TAB_PROFILE) profileColor else inactiveColor)
         dayView.view.visibility = if (tab == TAB_DAY) View.VISIBLE else View.GONE
         productsView.view.visibility = if (tab == TAB_PRODUCTS) View.VISIBLE else View.GONE
         profileView.view.visibility = if (tab == TAB_PROFILE) View.VISIBLE else View.GONE

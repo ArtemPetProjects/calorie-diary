@@ -9,6 +9,12 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginBottom="10dp"
+            android:background="?attr/blockProfile" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -134,40 +140,12 @@
             android:visibility="gone"
             android:text="@string/scheme_hint" />
 
-        <Button style="@style/AppButton"
-            android:id="@+id/scheme0"
+        <Spinner
+            android:id="@+id/schemeSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:text="@string/scheme_0" />
-
-        <Button style="@style/AppButton"
-            android:id="@+id/scheme1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="@string/scheme_1" />
-
-        <Button style="@style/AppButton"
-            android:id="@+id/scheme2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="@string/scheme_2" />
-
-        <Button style="@style/AppButton"
-            android:id="@+id/scheme3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="@string/scheme_3" />
-
-        <Button style="@style/AppButton"
-            android:id="@+id/scheme4"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="@string/scheme_4" />
+            android:entries="@array/macro_schemes" />
 
         <Button style="@style/AppButton"
             android:id="@+id/saveTargetsButton"

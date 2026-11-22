@@ -8,4 +8,7 @@
     <color name="meal1">@color/meal1_dark</color>
     <color name="meal2">@color/meal2_dark</color>
     <color name="meal3">@color/meal3_dark</color>
+    <color name="block_day">@color/block_day_dark</color>
+    <color name="block_products">@color/block_products_dark</color>
+    <color name="block_profile">@color/block_profile_dark</color>
 </resources>

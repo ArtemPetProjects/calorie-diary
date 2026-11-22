@@ -173,6 +173,7 @@ class ProductsView(private val activity: Activity) {
             .setNegativeButton(R.string.cancel, null)
             .create()
 
+        dialog.prepareForKeyboard()
         dialog.setOnShowListener {
             dialog.focusAndShowKeyboard(nameInput, selectAll = product != null)
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {

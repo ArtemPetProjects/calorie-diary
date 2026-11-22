@@ -11,4 +11,7 @@
     <attr name="meal1" format="color" />
     <attr name="meal2" format="color" />
     <attr name="meal3" format="color" />
+    <attr name="blockDay" format="color" />
+    <attr name="blockProducts" format="color" />
+    <attr name="blockProfile" format="color" />
 </resources>

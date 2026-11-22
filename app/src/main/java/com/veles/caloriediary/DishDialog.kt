@@ -71,6 +71,7 @@ class DishDialog(
             .setNegativeButton(R.string.cancel, null)
             .create()
 
+        dialog.prepareForKeyboard()
         dialog.setOnShowListener {
             dialog.focusAndShowKeyboard(nameInput, selectAll = dishId > 0)
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener { save(dialog) }

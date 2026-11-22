@@ -35,4 +35,13 @@
     <color name="meal1">@color/meal1_light</color>
     <color name="meal2">@color/meal2_light</color>
     <color name="meal3">@color/meal3_light</color>
+    <color name="block_day_light">#2E7D32</color>
+    <color name="block_products_light">#1565C0</color>
+    <color name="block_profile_light">#6A1B9A</color>
+    <color name="block_day_dark">#81C784</color>
+    <color name="block_products_dark">#64B5F6</color>
+    <color name="block_profile_dark">#CE93D8</color>
+    <color name="block_day">@color/block_day_light</color>
+    <color name="block_products">@color/block_products_light</color>
+    <color name="block_profile">@color/block_profile_light</color>
 </resources>

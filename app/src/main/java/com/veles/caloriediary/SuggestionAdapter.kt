@@ -1,6 +1,7 @@
 package com.veles.caloriediary
 
 import android.app.Activity
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,8 +25,21 @@ class SuggestionAdapter(
     private val all = products.map { Suggestion(it) }
     private val byName = all.associateBy { it.product.name.lowercase() }
     private val productsById = products.associateBy { it.id }
+    private val recentIdSet = recentIds.toHashSet()
     // Порядок recentIds — это порядок used_at DESC из БД; сохраняем его в списке.
     private val recentNames = recentIds.mapNotNull { productsById[it]?.name?.lowercase() }
+
+    private val recentColor: Int
+    private val normalColor: Int
+
+    init {
+        val ta = activity.obtainStyledAttributes(
+            intArrayOf(R.attr.recentDishText, android.R.attr.textColorPrimary)
+        )
+        recentColor = ta.getColor(0, Color.parseColor("#0288D1"))
+        normalColor = ta.getColor(1, Color.parseColor("#212121"))
+        ta.recycle()
+    }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val row = convertView ?: LayoutInflater.from(context)
@@ -35,9 +49,10 @@ class SuggestionAdapter(
         val nameView = row.findViewById<TextView>(R.id.suggestionName)
         val infoView = row.findViewById<TextView>(R.id.suggestionInfo)
         if (largerText) {
-            nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-            infoView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
+            infoView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
         }
+        nameView.setTextColor(if (item.product.id in recentIdSet) recentColor else normalColor)
         nameView.text = item.product.name
         infoView.text = context.getString(
             R.string.suggestion_info, fmt(n.kcal), fmt(n.protein), fmt(n.fat), fmt(n.carbs)

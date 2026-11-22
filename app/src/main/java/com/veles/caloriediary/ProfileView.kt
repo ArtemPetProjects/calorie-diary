@@ -27,13 +27,7 @@ class ProfileView(private val activity: Activity) {
     private val carbsInput: EditText = view.findViewById(R.id.targetCarbsInput)
     private val weightInput: EditText = view.findViewById(R.id.weightInput)
     private val schemeHint: TextView = view.findViewById(R.id.schemeHint)
-    private val schemeButtons = listOf(
-        view.findViewById<Button>(R.id.scheme0),
-        view.findViewById<Button>(R.id.scheme1),
-        view.findViewById<Button>(R.id.scheme2),
-        view.findViewById<Button>(R.id.scheme3),
-        view.findViewById<Button>(R.id.scheme4)
-    )
+    private val schemeSpinner: Spinner = view.findViewById(R.id.schemeSpinner)
     private var updating = false
     private val profileSpinner: Spinner = view.findViewById(R.id.profileSpinner)
     private var profiles = db.profiles()
@@ -119,11 +113,14 @@ class ProfileView(private val activity: Activity) {
                 if (updating) return
                 val visible = readNumber(kcalInput) != null
                 schemeHint.visibility = if (visible) View.VISIBLE else View.GONE
-                schemeButtons.forEach { it.visibility = if (visible) View.VISIBLE else View.GONE }
+                schemeSpinner.visibility = if (visible) View.VISIBLE else View.GONE
             }
         })
-        schemeButtons.forEachIndexed { index, button ->
-            button.setOnClickListener { applyScheme(index) }
+        schemeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (!updating && readNumber(kcalInput) != null) applyScheme(position)
+            }
         }
 
         val prefs = activity.getSharedPreferences(MainActivity.PREFS, Activity.MODE_PRIVATE)
