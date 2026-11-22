@@ -152,7 +152,26 @@ class ProfileView(private val activity: Activity) {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (schemeUpdating || updating) return
                 if (position == 0) {
-                    db.saveScheme(-1)
+                    db.saveScheme(0)
+                    val weight = readNumber(weightInput)
+                    val kcal = readNumber(kcalInput)
+                    if (weight == null || kcal == null) {
+                        Toast.makeText(activity, R.string.fill_targets, Toast.LENGTH_SHORT).show()
+                        return
+                    }
+                    val targets = weightScheme(weight, kcal)
+                    if (targets == null) {
+                        Toast.makeText(activity, R.string.weight_mismatch, Toast.LENGTH_SHORT).show()
+                        return
+                    }
+                    updating = true
+                    kcalInput.setText(fmt(targets.kcal))
+                    proteinInput.setText(fmt(targets.protein))
+                    fatInput.setText(fmt(targets.fat))
+                    carbsInput.setText(fmt(targets.carbs))
+                    updating = false
+                    db.saveBodyWeight(weight)
+                    db.saveTargets(targets)
                     return
                 }
                 val schemeIndex = position - 1
@@ -176,33 +195,6 @@ class ProfileView(private val activity: Activity) {
 
         val savedWeight = db.bodyWeight()
         if (savedWeight > 0.0) weightInput.setText(fmt(savedWeight))
-
-        view.findViewById<Button>(R.id.mySchemeButton).setOnClickListener {
-            val weight = readNumber(weightInput)
-            val kcal = readNumber(kcalInput)
-            if (weight == null || kcal == null) {
-                Toast.makeText(activity, R.string.fill_targets, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val targets = weightScheme(weight, kcal)
-            if (targets == null) {
-                Toast.makeText(activity, R.string.weight_mismatch, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            updating = true
-            kcalInput.setText(fmt(targets.kcal))
-            proteinInput.setText(fmt(targets.protein))
-            fatInput.setText(fmt(targets.fat))
-            carbsInput.setText(fmt(targets.carbs))
-            updating = false
-            db.saveBodyWeight(weight)
-            db.saveTargets(targets)
-            db.saveScheme(-1)
-            schemeUpdating = true
-            schemeSpinner.setSelection(0)
-            schemeSpinner.post { schemeUpdating = false }
-            Toast.makeText(activity, R.string.targets_saved, Toast.LENGTH_SHORT).show()
-        }
 
         view.findViewById<Button>(R.id.saveTargetsButton).setOnClickListener {
             val p = readNumber(proteinInput)

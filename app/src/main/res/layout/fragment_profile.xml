@@ -91,12 +91,6 @@
             android:inputType="numberDecimal"
             android:saveEnabled="false" />
 
-        <Button style="@style/AppButton"
-            android:id="@+id/mySchemeButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/my_scheme" />
-
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
