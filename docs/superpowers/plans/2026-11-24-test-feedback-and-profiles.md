@@ -24,6 +24,9 @@
 - Поиск находит «Молоко 3,2% (Савушкин продукт)»; тест ассета и smoke, Task 2.
 - При переключении профиля не смешиваются записи, цели и вес; проверка запросов и smoke, Task 4/5.
 - Обновление с версии 9 не теряет данные и не создаёт дубли; проверка миграции по коду, Task 4.
+- Пустой БЖУ не мешает сохранить продукт с ручной калорийностью; тест в Task 7.
+- Профицит и дефицит меняют цель и БЖУ пропорционально, не портя базовые цели; тест в Task 8.
+- Превышение нормы показывается со знаком «+» и процентом больше 100; тест в Task 9.
 
 ---
 
@@ -184,7 +187,7 @@ Expected: BUILD SUCCESSFUL, exit 0.
 - Modify: `app/src/main/res/values/strings.xml`
 
 **Interfaces:**
-- Produces: `fun profiles(): List<Profile>` where `Profile(id: Long, name: String, bodyKg: Double)`; `fun activeProfileId(): Long`; `fun setActiveProfile(id: Long)`; `fun addProfile(name: String): Long`; `fun renameProfile(id: Long, name: String): Boolean`; `fun deleteProfile(id: Long): Boolean`; `fun bodyWeight(): Double`; `fun saveBodyWeight(kg: Double)`.
+- Produces: `fun profiles(): List<Profile>` where `Profile(id: Long, name: String, bodyKg: Double)`; `fun activeProfileId(): Long`; `fun setActiveProfile(id: Long)`; `fun addProfile(name: String): Long`; `fun renameProfile(id: Long, name: String): Boolean`; `fun deleteProfile(id: Long): Boolean`; `fun bodyWeight(): Double`; `fun saveBodyWeight(kg: Double)`; `fun adjustmentFor(date: String): Double`; `fun saveAdjustment(date: String, delta: Double)`.
 
 - [ ] **Step 1: Модель и константы**
 
@@ -192,7 +195,7 @@ Expected: BUILD SUCCESSFUL, exit 0.
 
 - [ ] **Step 2: Миграция**
 
-В `onUpgrade` при `oldVersion < 10`: создать `profiles(_id, name UNIQUE, body_kg)`; вставить профиль id=1 с именем из `R.string.default_profile` и весом из старой настройки `body_weight`; добавить `profile_id` в `entries`; пересоздать `weights`, `targets`, `product_usage`, `dish_drafts` с составными ключами по `profile_id`, скопировав старые строки с profile_id=1. Создать индекс по `entries(profile_id, date)`.
+В `onUpgrade` при `oldVersion < 10`: создать `profiles(_id, name UNIQUE, body_kg)`; вставить профиль id=1 с именем из `R.string.default_profile` и весом из старой настройки `body_weight`; добавить `profile_id` в `entries`; пересоздать `weights`, `targets`, `product_usage`, `dish_drafts` с составными ключами по `profile_id`, скопировав старые строки с profile_id=1; создать `adjustments(profile_id INTEGER, date TEXT, kcal_delta REAL NOT NULL DEFAULT 0, PRIMARY KEY(profile_id, date))`. Создать индекс по `entries(profile_id, date)`.
 
 - [ ] **Step 3: Фильтрация запросов**
 
@@ -251,7 +254,153 @@ Expected: BUILD SUCCESSFUL, exit 0.
 
 ---
 
-### Task 6: Финал
+### Task 7: Продукт с пустым БЖУ
+
+**Files:**
+- Modify: `app/src/main/java/com/veles/caloriediary/Calculation.kt`
+- Modify: `app/src/main/java/com/veles/caloriediary/ProductsView.kt`
+- Modify: `app/src/main/java/com/veles/caloriediary/DayView.kt`
+- Test: `app/src/test/java/com/veles/caloriediary/CalculationTest.kt`
+
+**Interfaces:**
+- Produces: `fun productNutrients(kcal: Double, protein: Double?, fat: Double?, carbs: Double?): Nutrients`.
+
+- [ ] **Step 1: RED-тест**
+
+```kotlin
+@Test fun emptyMacrosBecomeZero() {
+    val n = productNutrients(235.0, null, null, null)
+    assertEquals(235.0, n.kcal, 0.01)
+    assertEquals(0.0, n.protein, 0.01)
+    assertEquals(0.0, n.fat, 0.01)
+    assertEquals(0.0, n.carbs, 0.01)
+}
+```
+
+- [ ] **Step 2: RED**
+
+Run: `gradlew :app:testDebugUnitTest --tests '*CalculationTest' --no-daemon`
+Expected: FAIL — функция не определена.
+
+- [ ] **Step 3: Реализовать и применить**
+
+`productNutrients` подставляет `0.0` вместо `null`. В `ProductsView.showDialog` и в блоке нового продукта `DayView.showAddDialog` требовать только название и калорийность; БЖУ читать через `readNumber`, который уже возвращает `null` для пустого поля, и передавать в `productNutrients`. Сохранение вида `Nutrients(kcal, p, f, c)` заменить на вызов функции.
+
+- [ ] **Step 4: GREEN**
+
+Run: `gradlew test assembleDebug --no-daemon`
+Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные.
+
+- [ ] **Step 5: Коммит**
+
+`git commit -m "feat: allow custom product without macros"`
+
+---
+
+### Task 8: Профицит и дефицит
+
+**Files:**
+- Modify: `app/src/main/java/com/veles/caloriediary/Calculation.kt`
+- Modify: `app/src/main/java/com/veles/caloriediary/DayView.kt`
+- Modify: `app/src/main/res/layout/fragment_day.xml`
+- Modify: `app/src/main/res/values/strings.xml`
+- Test: `app/src/test/java/com/veles/caloriediary/CalculationTest.kt`
+
+**Interfaces:**
+- Consumes: `Db.adjustmentFor(date)`, `Db.saveAdjustment(date, delta)` из Task 4.
+- Produces: `fun adjustTargets(targets: Targets, delta: Double): Targets`.
+
+- [ ] **Step 1: RED-тесты**
+
+```kotlin
+@Test fun surplusScalesMacros() {
+    val t = adjustTargets(Targets(2000.0, 120.0, 60.0, 250.0), 200.0)
+    assertEquals(2200.0, t.kcal, 0.01)
+    assertEquals(132.0, t.protein, 0.01)
+    assertEquals(66.0, t.fat, 0.01)
+    assertEquals(275.0, t.carbs, 0.01)
+}
+@Test fun deficitScalesMacros() {
+    val t = adjustTargets(Targets(2000.0, 120.0, 60.0, 250.0), -200.0)
+    assertEquals(1800.0, t.kcal, 0.01)
+    assertEquals(108.0, t.protein, 0.01)
+    assertEquals(54.0, t.fat, 0.01)
+    assertEquals(225.0, t.carbs, 0.01)
+}
+```
+
+- [ ] **Step 2: RED**
+
+Run: `gradlew :app:testDebugUnitTest --tests '*CalculationTest' --no-daemon`
+Expected: FAIL — функция не определена.
+
+- [ ] **Step 3: Реализовать функцию**
+
+`adjustTargets`: если `targets.kcal <= 0` вернуть `targets`; иначе `newKcal = targets.kcal + delta`, коэффициент `newKcal / targets.kcal`, все macro умножить на коэффициент и округлить через `round1`.
+
+- [ ] **Step 4: Поле в «Дне»**
+
+Добавить в `fragment_day.xml` числовое поле `adjustmentInput` с подсказкой «Корректировка нормы, ккал (+/-)» и кнопку сохранения. В `DayView.refresh()` брать `targets = adjustTargets(db.targets(), db.adjustmentFor(selectedDate))`. Кнопка сохраняет введённое значение через `db.saveAdjustment`. Базовые цели в профиле не меняются.
+
+- [ ] **Step 5: GREEN**
+
+Run: `gradlew test assembleDebug --no-daemon`
+Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные.
+
+- [ ] **Step 6: Коммит**
+
+`git commit -m "feat: add daily calorie surplus and deficit"`
+
+---
+
+### Task 9: Превышение в полосках
+
+**Files:**
+- Modify: `app/src/main/java/com/veles/caloriediary/Calculation.kt`
+- Modify: `app/src/main/java/com/veles/caloriediary/DayView.kt`
+- Modify: `app/src/main/res/values/strings.xml`
+- Test: `app/src/test/java/com/veles/caloriediary/CalculationTest.kt`
+
+**Interfaces:**
+- Produces: `fun excess(current: Double, target: Double): Pair<Boolean, Double>` — первый признак превышения, вторая величина по модулю.
+
+- [ ] **Step 1: RED-тесты**
+
+```kotlin
+@Test fun excessIsReportedWhenTargetIsExceeded() {
+    assertEquals(Pair(true, 200.0), excess(2200.0, 2000.0))
+    assertEquals(Pair(false, 200.0), excess(1800.0, 2000.0))
+}
+@Test fun percentCanExceedHundred() {
+    assertEquals(125, progressPercent(250.0, 200.0))
+}
+```
+
+- [ ] **Step 2: RED**
+
+Run: `gradlew :app:testDebugUnitTest --tests '*CalculationTest' --no-daemon`
+Expected: FAIL — нет функции или старое ожидание 100.
+
+- [ ] **Step 3: Реализовать**
+
+`progressPercent` больше не использует `progress`: `if (target <= 0) 0 else maxOf(0, (current / target * 100).toInt())`. `excess` возвращает `Pair(current > target, abs(current - target))`.
+
+- [ ] **Step 4: Показать в полосках**
+
+В `DayView.bindBar` вместо «осталось» выводить «+X» при превышении. Старая строка `progress_value` заменяется на две: `progress_value` для остатка и `progress_excess` для превышения.
+
+- [ ] **Step 5: GREEN**
+
+Run: `gradlew test assembleDebug --no-daemon`
+Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные.
+
+- [ ] **Step 6: Коммит**
+
+`git commit -m "feat: show calorie excess with plus sign"`
+
+---
+
+### Task 10: Финал
 
 **Files:**
 - Modify: `E:\OpenCodeModel\BACKLOG.md`, `BACKLOG-closed.md`, `CONTEXT.md`, `PLAN.md`
@@ -267,7 +416,7 @@ Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные, APK сов
 
 - [ ] **Step 3: Закрыть задачи**
 
-Закрыть BL-099 и BL-100 с доказательствами, обновить документы и дайджест.
+Закрыть BL-099, BL-100, BL-101, BL-102 и BL-103 с доказательствами, обновить документы и дайджест.
 
 - [ ] **Step 4: Коммит**
 
