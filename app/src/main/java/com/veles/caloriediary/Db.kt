@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import org.json.JSONArray
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -47,6 +48,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         )
         createDishItems(db)
         db.execSQL("CREATE TABLE weights (date TEXT PRIMARY KEY, kg REAL NOT NULL)")
+        db.execSQL("CREATE TABLE dish_drafts (_id INTEGER PRIMARY KEY CHECK(_id = 1), items_json TEXT NOT NULL)")
 
         for (p in STARTER_PRODUCTS) {
             db.insertWithOnConflict("products", null, productValues(p), SQLiteDatabase.CONFLICT_IGNORE)
@@ -108,6 +110,9 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         }
         if (oldVersion < 6) {
             db.execSQL("CREATE TABLE IF NOT EXISTS weights (date TEXT PRIMARY KEY, kg REAL NOT NULL)")
+        }
+        if (oldVersion < 7) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS dish_drafts (_id INTEGER PRIMARY KEY CHECK(_id = 1), items_json TEXT NOT NULL)")
         }
     }
 
@@ -403,6 +408,55 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
         )
     }
 
+    fun saveDraft(items: List<DishIngredient>) {
+        val array = JSONArray()
+        for (item in items) {
+            val o = JSONObject().apply {
+                put("product_id", item.productId)
+                put("product_name", item.productName)
+                put("grams", item.grams)
+                put("kcal", item.per100.kcal)
+                put("protein", item.per100.protein)
+                put("fat", item.per100.fat)
+                put("carbs", item.per100.carbs)
+            }
+            array.put(o)
+        }
+        val values = ContentValues().apply {
+            put("_id", 1L)
+            put("items_json", array.toString())
+        }
+        writableDatabase.insertWithOnConflict(
+            "dish_drafts", null, values, SQLiteDatabase.CONFLICT_REPLACE
+        )
+    }
+
+    fun draftItems(): List<DishIngredient> {
+        val cursor = readableDatabase.query(
+            "dish_drafts", arrayOf("items_json"), "_id = 1", null, null, null, null
+        )
+        val json = cursor.use { c -> if (c.moveToFirst()) c.getString(0) else null } ?: return emptyList()
+        val array = JSONArray(json)
+        return (0 until array.length()).map { i ->
+            val o = array.getJSONObject(i)
+            DishIngredient(
+                productId = o.getLong("product_id"),
+                productName = o.getString("product_name"),
+                grams = o.getDouble("grams"),
+                per100 = Nutrients(
+                    kcal = o.getDouble("kcal"),
+                    protein = o.getDouble("protein"),
+                    fat = o.getDouble("fat"),
+                    carbs = o.getDouble("carbs")
+                )
+            )
+        }
+    }
+
+    fun clearDraft() {
+        writableDatabase.delete("dish_drafts", "_id = 1", null)
+    }
+
     fun deleteWeight(date: String) {
         writableDatabase.delete("weights", "date = ?", arrayOf(date))
     }
@@ -461,7 +515,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
 
     companion object {
         private const val DB_NAME = "diary.db"
-        private const val DB_VERSION = 6
+        private const val DB_VERSION = 7
         private const val ASSET_PRODUCTS = "products_extended.json"
         val DEFAULT_TARGETS = Targets(2000.0, 120.0, 60.0, 250.0)
     }
