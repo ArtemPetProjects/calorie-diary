@@ -14,7 +14,7 @@ class BelarusProductsTest {
     @Test
     fun belarusAssetHasCompleteNutrients() {
         val rows = rowRegex.findAll(json).toList()
-        assertTrue(rows.size >= 30)
+        assertTrue(rows.size >= 60)
         assertTrue(rows.all { it.groupValues.drop(2).all { v -> v.toDouble() >= 0.0 } })
     }
 
@@ -22,6 +22,12 @@ class BelarusProductsTest {
     fun belarusAssetNamesAreUnique() {
         val names = rowRegex.findAll(json).map { it.groupValues[1] }.toList()
         assertEquals(names.size, names.toSet().size)
+    }
+
+    @Test
+    fun belarusNamesUseParenthesizedBrand() {
+        val names = rowRegex.findAll(json).map { it.groupValues[1] }.toList()
+        assertTrue(names.all { it.contains('(') && it.endsWith(')') })
     }
 
     @Test

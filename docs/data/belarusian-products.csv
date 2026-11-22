@@ -1,38 +1,61 @@
 name|brand|source_url|source_type|kcal|protein|fat|carbs|checked_on
-Молоко питьевое 3,6% 500 мл Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/moloko-pitevoe-35-500-ml/|official_catalog|65|3.1|3.6|4.7|2026-11-23
-Молоко питьевое пастеризованное 2,8% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/moloko-pitevoe-pasterizovannoe-2-6/|official_catalog|55|3|2.8|4.7|2026-11-23
-Молоко питьевое пастеризованное 3,6% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/moloko-pitevoe-pasterizovannoe-35-1l/|official_catalog|65|3.1|3.6|4.7|2026-11-23
-Питьевое молоко А2 3,6% Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/pitevoe-moloko-a2-36/|official_catalog|65|3|3.6|4.7|2026-11-23
-Кефир 3,6% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/kefir-36/|official_catalog|60|3.1|3.6|4|2026-11-23
-Ряженка 4% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/ryazhenka-4/|official_catalog|60|2.9|4|4.1|2026-11-23
-Кефир 2,8% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/kefir-35-1l/|official_catalog|60|3.1|2.8|4|2026-11-23
-Кефир А2 3,6% Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/kefir-a2-36/|official_catalog|60|3|3.6|4|2026-11-23
-Сметана 22% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/smetanoj-22/|official_catalog|220|2.5|22|2.9|2026-11-23
-Сметана 15% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/smetana-15/|official_catalog|160|2.6|15|2.9|2026-11-23
-Сметана А2 термостатная 12% Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/smetana-a2-termostatnaya-12/|official_catalog|130|2.8|12|3.1|2026-11-23
-Сметана 18% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/smetana-20/|official_catalog|200|2.7|18|2.9|2026-11-23
-Творог 10% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/tvorog-10/|official_catalog|150|14|10|1.5|2026-11-23
-Творог 6% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/tvorog-6/|official_catalog|120|15|6|1.5|2026-11-23
-Творог 2% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/tvorog-2/|official_catalog|90|17|2|1.3|2026-11-23
-Творог 3% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/tvorog-3/|official_catalog|95|16|3|1.4|2026-11-23
-Творог 9% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/tvorog-9/|official_catalog|150|16|9|1.5|2026-11-23
-Творог А2 массовая доля жира 7% Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/tvorog-a2-massovaya-dolya-zhira-7/|official_catalog|130|15|7|1.5|2026-11-23
-Йогурт «АСАБЛIВЫ» со вкусом дубайского шоколада Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-so-vkusom-dubajskogo-shokolada/|official_catalog|85|3|2.1|13|2026-11-23
-Йогурт «А2» «Салатная заправка с маринованным перчиком-зернами горчицы» Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-a2-salatnaya-zapravka-s-marinovannym-perchi/|official_catalog|70|2.9|3.2|8|2026-11-23
-Йогурт с пищевкусовым компонентом Яблоко-банан-мюсли Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/jogurt-s-pishevkusovym-komponentom-yabloko-b/|official_catalog|85|3.2|2.5|12.7|2026-11-23
-Йогурт «АСАБЛIВЫ» «Лимон-чиа» Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-limon-chia/|official_catalog|70|3.3|2.1|10|2026-11-23
-Йогурт «АСАБЛIВЫ» «Клюква» Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-klyukva/|official_catalog|70|3.3|2.1|10|2026-11-23
-Йогурт «А2» «Салатная заправка с зеленью-чесноком» Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-a2-salatnaya-zapravka-s-zelenyu-chesnokom/|official_catalog|70|2.9|3.2|6.8|2026-11-23
-Йогурт «А2» «Салатная заправка с шампиньонами» Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-a2-salatnaya-zapravka-s-shampinonami/|official_catalog|70|2.9|3.2|7.4|2026-11-23
-Йогурт «АСАБЛIВЫ» с вишней, смородиной и мятой Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-s-vishnej-smorodinoj-i-myatoj/|official_catalog|80|3|2.1|12|2026-11-23
-Йогурт «АСАБЛIВЫ» «Со вкусом кленового сиропа» Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-so-vkusom-klenovogo-siropa/|official_catalog|70|3.3|2.1|10|2026-11-23
-Йогурт «АСАБЛIВЫ» «Яблоко со вкусом карамели» Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-yabloko-so-vkusom-karameli/|official_catalog|70|3.3|2.1|10|2026-11-23
-Йогурт с пищевкусовым компонентом Лесная ягода Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/jogurt-s-pishevkusovym-komponentom-lesnaya-yagoda/|official_catalog|85|3.2|2.5|12.7|2026-11-23
-Крем сливочно-творожный «Мечта» с ароматом ванили Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/krem-slivochno-tvorozhnyj-mechta-vanily/|official_catalog|220|9.5|15|12.7|2026-11-23
-Йогурт с пищевкусовым компонентом «Персик – Маракуйя» 2,6 % Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/yogurt-s-pishchevkusovym-komponentom-persik--marakuyya-26-/|official_catalog|85|3.3|2.6|12.3|2026-11-23
-Биойогурт А2 без сахара 3,6% Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/biojogurt-a2-bez-sahara-36/|official_catalog|70|3.3|3.6|6.1|2026-11-23
-Масло сладкосливочное несолёное 81% Молочная капелька|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/maslo-sladko-slivochnoe-nesolyonoe-81/|official_catalog|730|0.5|81|0.9|2026-11-23
-Масло сладкосливочное несоленое А2 Асаблівае|Асаблівае|https://lncmilk.by/katalog/asablivae/maslo-sladkoslivochnoe-nesolenoe-a2/|official_catalog|750|0.5|82.5|0.8|2026-11-23
-Ряженка 3,2% Савушкин продукт|Савушкин продукт|https://proe.info/ru/food/ryazhenka-tm-savushkin-produkt-3-2|barcode_card|56.4|2.8|3.2|4.1|2026-11-23
-Ряженка 4% Молочный мир|Молочный мир|https://health-diet.ru/base_of_food/sostav/293011.php|calorie_table|65|2.9|4|4.1|2026-11-23
-Ряженка 3% Бабушкина крынка|Бабушкина крынка|https://health-diet.ru/table_calorie_users/713909/|calorie_table|54.6|3|2.8|4.1|2026-11-23
+Молоко питьевое 3,6% 500 мл (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/moloko-pitevoe-35-500-ml/|official_catalog|65|3.1|3.6|4.7|2026-11-23
+Молоко питьевое пастеризованное 2,8% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/moloko-pitevoe-pasterizovannoe-2-6/|official_catalog|55|3|2.8|4.7|2026-11-23
+Молоко питьевое пастеризованное 3,6% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/moloko-pitevoe-pasterizovannoe-35-1l/|official_catalog|65|3.1|3.6|4.7|2026-11-23
+Питьевое молоко А2 3,6% (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/pitevoe-moloko-a2-36/|official_catalog|65|3|3.6|4.7|2026-11-23
+Кефир 3,6% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/kefir-36/|official_catalog|60|3.1|3.6|4|2026-11-23
+Ряженка 4% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/ryazhenka-4/|official_catalog|60|2.9|4|4.1|2026-11-23
+Кефир 2,8% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/kefir-35-1l/|official_catalog|60|3.1|2.8|4|2026-11-23
+Кефир А2 3,6% (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/kefir-a2-36/|official_catalog|60|3|3.6|4|2026-11-23
+Сметана 22% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/smetanoj-22/|official_catalog|220|2.5|22|2.9|2026-11-23
+Сметана 15% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/smetana-15/|official_catalog|160|2.6|15|2.9|2026-11-23
+Сметана А2 термостатная 12% (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/smetana-a2-termostatnaya-12/|official_catalog|130|2.8|12|3.1|2026-11-23
+Сметана 18% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/smetana-20/|official_catalog|200|2.7|18|2.9|2026-11-23
+Творог 10% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/tvorog-10/|official_catalog|150|14|10|1.5|2026-11-23
+Творог 6% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/tvorog-6/|official_catalog|120|15|6|1.5|2026-11-23
+Творог 2% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/tvorog-2/|official_catalog|90|17|2|1.3|2026-11-23
+Творог 3% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/tvorog-3/|official_catalog|95|16|3|1.4|2026-11-23
+Творог 9% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/tvorog-9/|official_catalog|150|16|9|1.5|2026-11-23
+Творог А2 массовая доля жира 7% (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/tvorog-a2-massovaya-dolya-zhira-7/|official_catalog|130|15|7|1.5|2026-11-23
+Йогурт «АСАБЛIВЫ» со вкусом дубайского шоколада (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-so-vkusom-dubajskogo-shokolada/|official_catalog|85|3|2.1|13|2026-11-23
+Йогурт «А2» «Салатная заправка с маринованным перчиком-зернами горчицы» (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-a2-salatnaya-zapravka-s-marinovannym-perchi/|official_catalog|70|2.9|3.2|8|2026-11-23
+Йогурт с пищевкусовым компонентом Яблоко-банан-мюсли (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/jogurt-s-pishevkusovym-komponentom-yabloko-b/|official_catalog|85|3.2|2.5|12.7|2026-11-23
+Йогурт «АСАБЛIВЫ» «Лимон-чиа» (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-limon-chia/|official_catalog|70|3.3|2.1|10|2026-11-23
+Йогурт «АСАБЛIВЫ» «Клюква» (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-klyukva/|official_catalog|70|3.3|2.1|10|2026-11-23
+Йогурт «А2» «Салатная заправка с зеленью-чесноком» (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-a2-salatnaya-zapravka-s-zelenyu-chesnokom/|official_catalog|70|2.9|3.2|6.8|2026-11-23
+Йогурт «А2» «Салатная заправка с шампиньонами» (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-a2-salatnaya-zapravka-s-shampinonami/|official_catalog|70|2.9|3.2|7.4|2026-11-23
+Йогурт «АСАБЛIВЫ» с вишней, смородиной и мятой (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-s-vishnej-smorodinoj-i-myatoj/|official_catalog|80|3|2.1|12|2026-11-23
+Йогурт «АСАБЛIВЫ» «Со вкусом кленового сиропа» (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-so-vkusom-klenovogo-siropa/|official_catalog|70|3.3|2.1|10|2026-11-23
+Йогурт «АСАБЛIВЫ» «Яблоко со вкусом карамели» (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/jogurt-asablivy-yabloko-so-vkusom-karameli/|official_catalog|70|3.3|2.1|10|2026-11-23
+Йогурт с пищевкусовым компонентом Лесная ягода (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/jogurt-s-pishevkusovym-komponentom-lesnaya-yagoda/|official_catalog|85|3.2|2.5|12.7|2026-11-23
+Крем сливочно-творожный «Мечта» с ароматом ванили (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/krem-slivochno-tvorozhnyj-mechta-vanily/|official_catalog|220|9.5|15|12.7|2026-11-23
+Йогурт с пищевкусовым компонентом «Персик – Маракуйя» 2,6 % (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/yogurt-s-pishchevkusovym-komponentom-persik--marakuyya-26-/|official_catalog|85|3.3|2.6|12.3|2026-11-23
+Биойогурт А2 без сахара 3,6% (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/biojogurt-a2-bez-sahara-36/|official_catalog|70|3.3|3.6|6.1|2026-11-23
+Масло сладкосливочное несолёное 81% (Молочная капелька)|Молочная капелька|https://lncmilk.by/katalog/molochnaya-kapelka/maslo-sladko-slivochnoe-nesolyonoe-81/|official_catalog|730|0.5|81|0.9|2026-11-23
+Масло сладкосливочное несоленое А2 (Асаблівае)|Асаблівае|https://lncmilk.by/katalog/asablivae/maslo-sladkoslivochnoe-nesolenoe-a2/|official_catalog|750|0.5|82.5|0.8|2026-11-23
+Ряженка 3,2% (Савушкин продукт)|Савушкин продукт|https://proe.info/ru/food/ryazhenka-tm-savushkin-produkt-3-2|barcode_card|56.4|2.8|3.2|4.1|2026-11-23
+Ряженка 4% (Молочный мир)|Молочный мир|https://health-diet.ru/base_of_food/sostav/293011.php|calorie_table|65|2.9|4|4.1|2026-11-23
+Ряженка 3% (Бабушкина крынка)|Бабушкина крынка|https://health-diet.ru/table_calorie_users/713909/|calorie_table|54.6|3|2.8|4.1|2026-11-23
+Молоко 3,2% (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/177751.php|calorie_table|60|2.8|3.2|4.7|2026-11-24
+Молоко 2,5% (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/177697.php|calorie_table|53|3|2.5|4.7|2026-11-24
+Сырок (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/343545.php|calorie_table|251|9.8|10.7|28.8|2026-11-24
+Сырок Сгущенка Вареная (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/343530.php|calorie_table|359|6.5|23|31.3|2026-11-24
+Сырок Коровка (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/343528.php|calorie_table|368|5.6|25.6|28.8|2026-11-24
+Сыр Выдержанный (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/177802.php|calorie_table|313|24.7|23.8|0|2026-11-24
+Сыр Голландский Брусковый (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/177629.php|calorie_table|332|26.3|25.2|0|2026-11-24
+Творог Обезжиренный 0% (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/123525.php|calorie_table|79|18.3|0.1|1.3|2026-11-24
+Сырок Халва (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/343538.php|calorie_table|352|6|23|30.3|2026-11-24
+Сыр Творожный Сливочный (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/343546.php|calorie_table|195|10|16.5|1.6|2026-11-24
+Оптималь Питьевой 0% (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/177817.php|calorie_table|62|3.1|0|12.5|2026-11-24
+Сыр Белый (Савушкин продукт)|Савушкин продукт|https://health-diet.ru/base_of_food/sostav/343527.php|calorie_table|195|10|16.5|1.6|2026-11-24
+СОМ (Молочный мир)|Молочный мир|https://health-diet.ru/base_of_food/sostav/102863.php|calorie_table|337|32|1|50|2026-11-24
+Молоко 1% (Молочный мир)|Молочный мир|https://health-diet.ru/base_of_food/sostav/168817.php|calorie_table|40|3.1|1|4.7|2026-11-24
+Молоко 3,2% (Молочный мир)|Молочный мир|https://health-diet.ru/base_of_food/sostav/228988.php|calorie_table|60|3.2|3.2|4.7|2026-11-24
+Молоко 2,7% (Молочный мир)|Молочный мир|https://health-diet.ru/base_of_food/sostav/102859.php|calorie_table|54|2.8|2.7|4.7|2026-11-24
+Молоко 2,5% (Молочный мир)|Молочный мир|https://health-diet.ru/base_of_food/sostav/168800.php|calorie_table|55|3.1|2.5|4.7|2026-11-24
+Молоко 3,7% (Молочный мир)|Молочный мир|https://health-diet.ru/base_of_food/sostav/102864.php|calorie_table|63|2.8|3.7|4.7|2026-11-24
+Мороженое (Молочный мир)|Молочный мир|https://health-diet.ru/base_of_food/sostav/338788.php|calorie_table|280|4|20|23|2026-11-24
+Творог 1% (Бабушкина крынка)|Бабушкина крынка|https://health-diet.ru/base_of_food/sostav/149040.php|calorie_table|80|16|1|1.3|2026-11-24
+Сырок Творожный Глазированный (Бабушкина крынка)|Бабушкина крынка|https://health-diet.ru/base_of_food/sostav/149046.php|calorie_table|380|7|25.2|32.5|2026-11-24
+Фруктовый Наполнитель Инжир (Бабушкина крынка)|Бабушкина крынка|https://health-diet.ru/base_of_food/sostav/149073.php|calorie_table|297|0|0|71.9|2026-11-24
+Маасдам (Бабушкина крынка)|Бабушкина крынка|https://health-diet.ru/base_of_food/sostav/149039.php|calorie_table|330|26.8|25.2|0|2026-11-24
