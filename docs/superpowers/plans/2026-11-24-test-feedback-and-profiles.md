@@ -42,11 +42,11 @@
 - Produces: `Dialog.focusAndShowKeyboard(field: View, selectAll: Boolean = false)` — теперь с явным `InputMethodManager.showSoftInput` в `post`.
 - Produces: строка `entry_details` с пятью аргументами: вес, калории, белки, жиры, углеводы.
 
-- [ ] **Step 1: Добавить строку деталей**
+- [x] **Step 1: Добавить строку деталей**
 
 В `strings.xml`: `<string name="entry_details">%1$s г • %2$s ккал • Б %3$s / Ж %4$s / У %5$s</string>`.
 
-- [ ] **Step 2: Исправить клавиатуру**
+- [x] **Step 2: Исправить клавиатуру**
 
 В `Dialogs.kt` импортировать `android.content.Context` и `android.view.inputmethod.InputMethodManager`. После настройки фокуса добавить:
 ```kotlin
@@ -58,20 +58,20 @@ field.post {
 ```
 В `DayView.openWeightDialog` и `openEditWeightDialog` дополнительно вызвать `dialog.window?.setSoftInputMode(SOFT_INPUT_STATE_VISIBLE)` до `dialog.show()`.
 
-- [ ] **Step 3: Исправить подсветку**
+- [x] **Step 3: Исправить подсветку**
 
 В `ProductsView.ProductAdapter` переименовать конструкторный аргумент `recentDishIds` в `recentIds` и убрать `product.isDish &&` из условия `setTextColor`. В `refreshList()` передавать `db.recentProductIds().toSet()` как есть.
 
-- [ ] **Step 4: Перекомпоновать строку еды**
+- [x] **Step 4: Перекомпоновать строку еды**
 
 В `DayView.refresh()` вместо текущего `entryText` ставить только `entry.productName`, а в `entryMacros` — `getString(R.string.entry_details, fmt(entry.grams), fmt(entry.values.kcal), fmt(protein), fmt(fat), fmt(carbs))`.
 
-- [ ] **Step 5: Проверить**
+- [x] **Step 5: Проверить**
 
 Run: `gradlew test assembleDebug --no-daemon`
 Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные. Клавиатура и цвет подтверждаются ручным smoke на телефоне.
 
-- [ ] **Step 6: Коммит**
+- [x] **Step 6: Коммит**
 
 `git commit -m "fix: show keyboard, highlight used products, reorder entry row"`
 
@@ -88,7 +88,7 @@ Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные. Клави
 - Consumes: те же форматы JSON и CSV, что и в предыдущем плане.
 - Produces: не менее 60 позиций; каждое имя содержит `(` и `)`; CSV содержит ровно те же имена.
 
-- [ ] **Step 1: Обновить тесты**
+- [x] **Step 1: Обновить тесты**
 
 В `belarusAssetHasCompleteNutrients` заменить `rows.size >= 30` на `rows.size >= 60`. Добавить тест:
 ```kotlin
@@ -98,16 +98,16 @@ Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные. Клави
 }
 ```
 
-- [ ] **Step 2: RED**
+- [x] **Step 2: RED**
 
 Run: `gradlew :app:testDebugUnitTest --tests '*BelarusProductsTest' --no-daemon`
 Expected: FAIL — сейчас 37 позиций и имена без скобок.
 
-- [ ] **Step 3: Переименовать текущие 37 позиций**
+- [x] **Step 3: Переименовать текущие 37 позиций**
 
 Заменить конец названия на скобки: `… Молочная капелька` → `… (Молочная капелька)`, `… Асаблівае` → `… (Асаблівае)`, `… Савушкин продукт` → `… (Савушкин продукт)`, `… Молочный мир` → `… (Молочный мир)`, `… Бабушкина крынка` → `… (Бабушкина крынка)`. В CSV обновить те же имена.
 
-- [ ] **Step 4: Добавить 23 позиции с источниками**
+- [x] **Step 4: Добавить 23 позиции с источниками**
 
 | Название | ккал | Б | Ж | У | Источник |
 |---|---|---|---|---|---|
@@ -137,12 +137,12 @@ Expected: FAIL — сейчас 37 позиций и имена без скоб�
 
 Для сокращённых URL в таблице использовать полный префикс `https://health-diet.ru/base_of_food/sostav/`. Тип источника — `calorie_table`, дата `2026-11-24`.
 
-- [ ] **Step 5: GREEN**
+- [x] **Step 5: GREEN**
 
 Run: `gradlew :app:testDebugUnitTest --tests '*BelarusProductsTest' --no-daemon`
 Expected: PASS, не менее 60 позиций.
 
-- [ ] **Step 6: Коммит**
+- [x] **Step 6: Коммит**
 
 `git commit -m "feat: expand belarusian products and parenthesize brands"`
 
@@ -157,24 +157,24 @@ Expected: PASS, не менее 60 позиций.
 **Interfaces:**
 - Produces: атрибуты `meal0`…`meal3`; `DayView` выбирает рамку группы по индексу приёма пищи.
 
-- [ ] **Step 1: Цвета и атрибуты**
+- [x] **Step 1: Цвета и атрибуты**
 
 Добавить в `attrs.xml` четыре атрибута `meal0`…`meal3`; в светлой и тёмной темах задать пастельные оттенки для завтра/обеда/ужина/перекуса. Создать четыре drawable с скруглением 8dp и обводкой 2dp в эти цвета.
 
-- [ ] **Step 2: Применить к группам**
+- [x] **Step 2: Применить к группам**
 
 В `DayView.refresh()` при создании `box` для группы брать `meal_border_${index % 4}` вместо общего `meal_group_border`. Заголовок группы сделать 16sp полужирным.
 
-- [ ] **Step 3: Подсветить значения**
+- [x] **Step 3: Подсветить значения**
 
 В `bindBar` красивить `valueId` в цвет соответствующего макроса из атрибутов; подписи значений оставить стандартными.
 
-- [ ] **Step 4: Проверить**
+- [x] **Step 4: Проверить**
 
 Run: `gradlew test assembleDebug --no-daemon`
 Expected: BUILD SUCCESSFUL, exit 0.
 
-- [ ] **Step 5: Коммит**
+- [x] **Step 5: Коммит**
 
 `git commit -m "feat: colorize meal groups and progress values"`
 
@@ -189,32 +189,32 @@ Expected: BUILD SUCCESSFUL, exit 0.
 **Interfaces:**
 - Produces: `fun profiles(): List<Profile>` where `Profile(id: Long, name: String, bodyKg: Double)`; `fun activeProfileId(): Long`; `fun setActiveProfile(id: Long)`; `fun addProfile(name: String): Long`; `fun renameProfile(id: Long, name: String): Boolean`; `fun deleteProfile(id: Long): Boolean`; `fun bodyWeight(): Double`; `fun saveBodyWeight(kg: Double)`; `fun adjustmentFor(date: String): Double`; `fun saveAdjustment(date: String, delta: Double)`.
 
-- [ ] **Step 1: Модель и константы**
+- [x] **Step 1: Модель и константы**
 
 Добавить `data class Profile` в `Models.kt`. В `Db` поднять `DB_VERSION` до 10.
 
-- [ ] **Step 2: Миграция**
+- [x] **Step 2: Миграция**
 
 В `onUpgrade` при `oldVersion < 10`: создать `profiles(_id, name UNIQUE, body_kg)`; вставить профиль id=1 с именем из `R.string.default_profile` и весом из старой настройки `body_weight`; добавить `profile_id` в `entries`; пересоздать `weights`, `targets`, `product_usage`, `dish_drafts` с составными ключами по `profile_id`, скопировав старые строки с profile_id=1; создать `adjustments(profile_id INTEGER, date TEXT, kcal_delta REAL NOT NULL DEFAULT 0, PRIMARY KEY(profile_id, date))`. Создать индекс по `entries(profile_id, date)`.
 
-- [ ] **Step 3: Фильтрация запросов**
+- [x] **Step 3: Фильтрация запросов**
 
 Во всех методах работы с пользовательскими данными добавить условие `profile_id = activeProfileId()`. В `saveEntry`, `markUsed`, `saveWeight`, `saveDraft` подставлять активный профиль. В `saveTargets` писать `__id = activeProfileId` в таблице `targets` (первичный ключ — profile_id).
 
-- [ ] **Step 4: Методы профилей**
+- [x] **Step 4: Методы профилей**
 
 Реализовать контракт Interfaces. `addProfile` создаёт для нового профиля цели по умолчанию. `deleteProfile` запрещает удалять последний профиль и удаляет связанные записи; `renameProfile` ловит конфликт имени.
 
-- [ ] **Step 4а: Переименование старых белорусских позиций**
+- [x] **Step 4а: Переименование старых белорусских позиций**
 
 В той же миграции до версии 10 обновить имена уже импортированных белорусских продуктов: для строк, чьё имя заканчивается на « Молочная капелька», « Асаблівае», « Савушкин продукт», « Молочный мир» или « Бабушкина крынка», заменить суффикс на « (Бренд)» и пересчитать `search_name`. Это нужно, чтобы у обновившихся пользователей бренд оказался в скобках; `INSERT OR IGNORE` сам old строки не изменит.
 
-- [ ] **Step 5: Проверить**
+- [x] **Step 5: Проверить**
 
 Run: `gradlew test assembleDebug --no-daemon`
 Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные. Проверить по коду, что нет запроса без фильтра по профилю.
 
-- [ ] **Step 6: Коммит**
+- [x] **Step 6: Коммит**
 
 `git commit -m "feat: add profiles to database"`
 
@@ -231,24 +231,24 @@ Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные. Прове
 **Interfaces:**
 - Consumes: методы `Db` из Task 4.
 
-- [ ] **Step 1: Элементы управления**
+- [x] **Step 1: Элементы управления**
 
 Добавить в `fragment_profile.xml` `Spinner` со списком профилей и четыре кнопки: «Добавить», «Переименовать», «Удалить», «Переключить». Добавить строки в `strings.xml`, включая `default_profile`.
 
-- [ ] **Step 2: Логика ProfileView**
+- [x] **Step 2: Логика ProfileView**
 
 При создании заполнять Spinner из `db.profiles()`, выбирать активный. «Добавить» и «Переименовать» показывают диалог с полем ввода; «Удалить» — диалог подтверждения с предупреждением о потере данных профиля; «Переключить» вызывает `db.setActiveProfile(id)`.
 
-- [ ] **Step 3: Перезагрузка экранов**
+- [x] **Step 3: Перезагрузка экранов**
 
 После любого изменения профиля вызывать `activity.recreate()` — `MainActivity.onSaveInstanceState` уже сохраняет вкладку и дату. Заменить чтение веса из SharedPreferences на `db.bodyWeight()` и запись на `db.saveBodyWeight(kg)` в обоих местах ProfileView.
 
-- [ ] **Step 4: Проверить**
+- [x] **Step 4: Проверить**
 
 Run: `gradlew test assembleDebug --no-daemon`
 Expected: BUILD SUCCESSFUL, exit 0.
 
-- [ ] **Step 5: Коммит**
+- [x] **Step 5: Коммит**
 
 `git commit -m "feat: add profile switcher to profile tab"`
 
@@ -265,7 +265,7 @@ Expected: BUILD SUCCESSFUL, exit 0.
 **Interfaces:**
 - Produces: `fun productNutrients(kcal: Double, protein: Double?, fat: Double?, carbs: Double?): Nutrients`.
 
-- [ ] **Step 1: RED-тест**
+- [x] **Step 1: RED-тест**
 
 ```kotlin
 @Test fun emptyMacrosBecomeZero() {
@@ -277,21 +277,21 @@ Expected: BUILD SUCCESSFUL, exit 0.
 }
 ```
 
-- [ ] **Step 2: RED**
+- [x] **Step 2: RED**
 
 Run: `gradlew :app:testDebugUnitTest --tests '*CalculationTest' --no-daemon`
 Expected: FAIL — функция не определена.
 
-- [ ] **Step 3: Реализовать и применить**
+- [x] **Step 3: Реализовать и применить**
 
 `productNutrients` подставляет `0.0` вместо `null`. В `ProductsView.showDialog` и в блоке нового продукта `DayView.showAddDialog` требовать только название и калорийность; БЖУ читать через `readNumber`, который уже возвращает `null` для пустого поля, и передавать в `productNutrients`. Сохранение вида `Nutrients(kcal, p, f, c)` заменить на вызов функции.
 
-- [ ] **Step 4: GREEN**
+- [x] **Step 4: GREEN**
 
 Run: `gradlew test assembleDebug --no-daemon`
 Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные.
 
-- [ ] **Step 5: Коммит**
+- [x] **Step 5: Коммит**
 
 `git commit -m "feat: allow custom product without macros"`
 
@@ -310,7 +310,7 @@ Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные.
 - Consumes: `Db.adjustmentFor(date)`, `Db.saveAdjustment(date, delta)` из Task 4.
 - Produces: `fun adjustTargets(targets: Targets, delta: Double): Targets`.
 
-- [ ] **Step 1: RED-тесты**
+- [x] **Step 1: RED-тесты**
 
 ```kotlin
 @Test fun surplusScalesMacros() {
@@ -329,25 +329,25 @@ Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные.
 }
 ```
 
-- [ ] **Step 2: RED**
+- [x] **Step 2: RED**
 
 Run: `gradlew :app:testDebugUnitTest --tests '*CalculationTest' --no-daemon`
 Expected: FAIL — функция не определена.
 
-- [ ] **Step 3: Реализовать функцию**
+- [x] **Step 3: Реализовать функцию**
 
 `adjustTargets`: если `targets.kcal <= 0` вернуть `targets`; иначе `newKcal = targets.kcal + delta`, коэффициент `newKcal / targets.kcal`, все macro умножить на коэффициент и округлить через `round1`.
 
-- [ ] **Step 4: Поле в «Дне»**
+- [x] **Step 4: Поле в «Дне»**
 
 Добавить в `fragment_day.xml` числовое поле `adjustmentInput` с подсказкой «Корректировка нормы, ккал (+/-)» и кнопку сохранения. В `DayView.refresh()` брать `targets = adjustTargets(db.targets(), db.adjustmentFor(selectedDate))`. Кнопка сохраняет введённое значение через `db.saveAdjustment`. Базовые цели в профиле не меняются.
 
-- [ ] **Step 5: GREEN**
+- [x] **Step 5: GREEN**
 
 Run: `gradlew test assembleDebug --no-daemon`
 Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные.
 
-- [ ] **Step 6: Коммит**
+- [x] **Step 6: Коммит**
 
 `git commit -m "feat: add daily calorie surplus and deficit"`
 
@@ -364,7 +364,7 @@ Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные.
 **Interfaces:**
 - Produces: `fun excess(current: Double, target: Double): Pair<Boolean, Double>` — первый признак превышения, вторая величина по модулю.
 
-- [ ] **Step 1: RED-тесты**
+- [x] **Step 1: RED-тесты**
 
 ```kotlin
 @Test fun excessIsReportedWhenTargetIsExceeded() {
@@ -376,25 +376,25 @@ Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные.
 }
 ```
 
-- [ ] **Step 2: RED**
+- [x] **Step 2: RED**
 
 Run: `gradlew :app:testDebugUnitTest --tests '*CalculationTest' --no-daemon`
 Expected: FAIL — нет функции или старое ожидание 100.
 
-- [ ] **Step 3: Реализовать**
+- [x] **Step 3: Реализовать**
 
 `progressPercent` больше не использует `progress`: `if (target <= 0) 0 else maxOf(0, (current / target * 100).toInt())`. `excess` возвращает `Pair(current > target, abs(current - target))`.
 
-- [ ] **Step 4: Показать в полосках**
+- [x] **Step 4: Показать в полосках**
 
 В `DayView.bindBar` вместо «осталось» выводить «+X» при превышении. Старая строка `progress_value` заменяется на две: `progress_value` для остатка и `progress_excess` для превышения.
 
-- [ ] **Step 5: GREEN**
+- [x] **Step 5: GREEN**
 
 Run: `gradlew test assembleDebug --no-daemon`
 Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные.
 
-- [ ] **Step 6: Коммит**
+- [x] **Step 6: Коммит**
 
 `git commit -m "feat: show calorie excess with plus sign"`
 
@@ -405,19 +405,19 @@ Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные.
 **Files:**
 - Modify: `E:\OpenCodeModel\BACKLOG.md`, `BACKLOG-closed.md`, `CONTEXT.md`, `PLAN.md`
 
-- [ ] **Step 1: Финальная проверка**
+- [x] **Step 1: Финальная проверка**
 
 Run: `gradlew test assembleDebug --no-daemon`; посчитать тесты, скопировать APK, зафиксировать размер и SHA256.
 Expected: BUILD SUCCESSFUL, exit 0, все тесты зелёные, APK совпадает со сборкой.
 
-- [ ] **Step 2: Smoke**
+- [x] **Step 2: Smoke**
 
 Проверить на телефоне: клавиатура с первого тапа, голубые использованные продукты, поиск молока Савушкина, новый вид строки еды, цвета групп, переключение профилей и независимость целей/веса.
 
-- [ ] **Step 3: Закрыть задачи**
+- [x] **Step 3: Закрыть задачи**
 
 Закрыть BL-099, BL-100, BL-101, BL-102 и BL-103 с доказательствами, обновить документы и дайджест.
 
-- [ ] **Step 4: Коммит**
+- [x] **Step 4: Коммит**
 
 `git commit -m "docs: close test feedback and profiles"`

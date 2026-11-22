@@ -212,6 +212,7 @@ class Db(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION
             )
             createDefaultProfile(db)
             renameBelarusProducts(db)
+            importBelarusProducts(db)
             if (!hasColumn(db, "entries", "profile_id")) {
                 db.execSQL("ALTER TABLE entries ADD COLUMN profile_id INTEGER NOT NULL DEFAULT 1")
             }
