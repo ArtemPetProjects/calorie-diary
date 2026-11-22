@@ -130,6 +130,12 @@
             android:layout_marginTop="16dp"
             android:text="@string/add_product" />
 
+        <Button
+            android:id="@+id/addDishButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/build_dish" />
+
         <LinearLayout
             android:id="@+id/entryList"
             android:layout_width="match_parent"

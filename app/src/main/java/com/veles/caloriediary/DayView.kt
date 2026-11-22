@@ -41,6 +41,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         view.findViewById<Button>(R.id.prevWeek).setOnClickListener { shiftWeek(-7) }
         view.findViewById<Button>(R.id.nextWeek).setOnClickListener { shiftWeek(7) }
         view.findViewById<Button>(R.id.addEntryButton).setOnClickListener { showAddDialog() }
+        view.findViewById<Button>(R.id.addDishButton).setOnClickListener { openDishDialog() }
         refresh()
     }
 
@@ -141,6 +142,19 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
     private fun weekDayName(index: Int) = arrayOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")[index]
 
     private fun fmt(value: Double) = String.format(Locale.getDefault(), "%.1f", value)
+
+    fun openDishDialog(dishId: Long = 0L) {
+        DishDialog(activity, db, dishId) { id, grams, addToDay ->
+            if (addToDay) {
+                db.products().firstOrNull { it.id == id }?.let { dish ->
+                    db.addEntry(
+                        Entry(0, selectedDate, id, dish.name, grams, forWeight(dish.per100, grams))
+                    )
+                    refresh()
+                }
+            }
+        }.show()
+    }
 
     private fun showAddDialog() {
         val content = LayoutInflater.from(activity).inflate(R.layout.dialog_entry, null)

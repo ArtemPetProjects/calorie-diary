@@ -26,4 +26,11 @@
     <string name="confirm_delete">Удалить запись?</string>
     <string name="duplicate_product">Такой продукт уже есть</string>
     <string name="remove">×</string>
+    <string name="build_dish">Собрать блюдо</string>
+    <string name="dish_name">Название блюда</string>
+    <string name="add_ingredient">Добавить ингредиент</string>
+    <string name="final_weight">Итоговый вес блюда, г</string>
+    <string name="add_to_day">Добавить в день</string>
+    <string name="dish_saved">Блюдо сохранено</string>
+    <string name="invalid_dish">Проверьте ингредиенты и итоговый вес</string>
 </resources>
