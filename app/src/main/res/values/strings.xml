@@ -41,4 +41,6 @@
     <string name="custom_mark">[своё]</string>
     <string name="product_row">%1$s %2$s • %3$s ккал / Б %4$s / Ж %5$s / У %6$s на 100 г</string>
     <string name="dish_preview">%1$s ккал • Б %2$s / Ж %3$s / У %4$s на 100 г</string>
+    <string name="per_100_info">%1$s ккал • Б %2$s / Ж %3$s / У %4$s на 100 г</string>
+    <string name="entry_macros">Б %1$s / Ж %2$s / У %3$s</string>
 </resources>

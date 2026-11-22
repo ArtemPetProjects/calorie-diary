@@ -86,6 +86,10 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             val row = LayoutInflater.from(activity).inflate(R.layout.item_entry, entryList, false)
             row.findViewById<TextView>(R.id.entryText).text =
                 "${entry.productName} • ${fmt(entry.grams)} г • ${fmt(entry.values.kcal)} ккал"
+            row.findViewById<TextView>(R.id.entryMacros).text = activity.getString(
+                R.string.entry_macros,
+                fmt(entry.values.protein), fmt(entry.values.fat), fmt(entry.values.carbs)
+            )
             row.findViewById<Button>(R.id.deleteEntryButton).setOnClickListener {
                 android.app.AlertDialog.Builder(activity)
                     .setTitle(R.string.confirm_delete)
@@ -161,6 +165,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         val productInput = content.findViewById<AutoCompleteTextView>(R.id.productInput)
         val weightInput = content.findViewById<EditText>(R.id.weightInput)
         val preview = content.findViewById<TextView>(R.id.previewText)
+        val productInfo = content.findViewById<TextView>(R.id.selectedProductInfo)
         val newFields = content.findViewById<LinearLayout>(R.id.newProductFields)
 
         val products = db.products()
@@ -176,10 +181,20 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                 val product = products.firstOrNull { it.name.equals(name, ignoreCase = true) }
                 newFields.visibility =
                     if (name.isNotBlank() && product == null) View.VISIBLE else View.GONE
+                productInfo.text = if (product != null) {
+                    val n = product.per100
+                    activity.getString(
+                        R.string.per_100_info, fmt(n.kcal), fmt(n.protein), fmt(n.fat), fmt(n.carbs)
+                    )
+                } else {
+                    ""
+                }
                 val grams = parseGrams(weightInput.text.toString())
                 preview.text = if (product != null && grams != null) {
                     val n = forWeight(product.per100, grams)
-                    "${fmt(n.kcal)} ккал • Б ${fmt(n.protein)} / Ж ${fmt(n.fat)} / У ${fmt(n.carbs)}"
+                    activity.getString(
+                        R.string.dish_preview, fmt(n.kcal), fmt(n.protein), fmt(n.fat), fmt(n.carbs)
+                    )
                 } else {
                     ""
                 }

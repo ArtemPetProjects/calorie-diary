@@ -6,12 +6,24 @@
     android:gravity="center_vertical"
     android:paddingVertical="2dp">
 
-    <AutoCompleteTextView
-        android:id="@+id/ingredientProduct"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_weight="2"
         android:layout_height="wrap_content"
-        android:hint="@string/product_name" />
+        android:orientation="vertical">
+
+        <AutoCompleteTextView
+            android:id="@+id/ingredientProduct"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/product_name" />
+
+        <TextView
+            android:id="@+id/ingredientInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="11sp" />
+    </LinearLayout>
 
     <EditText
         android:id="@+id/ingredientWeight"
