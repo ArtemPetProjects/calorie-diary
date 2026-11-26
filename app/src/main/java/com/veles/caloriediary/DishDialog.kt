@@ -15,11 +15,13 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import com.veles.caloriediary.domain.repository.DiaryRepository
+import com.veles.caloriediary.domain.usecase.SaveDishUseCase
 import java.util.Locale
 
 class DishDialog(
     private val activity: Activity,
-    private val db: Db,
+    private val db: DiaryRepository,
     private val dishId: Long = 0L,
     private val showAddToDay: Boolean = true,
     private val draftId: Long = 0L,
@@ -27,6 +29,7 @@ class DishDialog(
     private val onSaved: (Long, Double, Boolean) -> Unit
 ) {
 
+    private val saveDish = SaveDishUseCase(db)
     private val products = db.products().toMutableList()
     private var adapter = SuggestionAdapter(activity, products, db.recentProductIds(), largerText = true)
     private val content = LayoutInflater.from(activity).inflate(R.layout.dialog_dish, null)
@@ -261,9 +264,8 @@ class DishDialog(
             Toast.makeText(activity, R.string.invalid_dish, Toast.LENGTH_SHORT).show()
             return
         }
-        val n = dishPer100(items, finalGrams) ?: return
-        val id = db.saveDish(name, finalGrams, n, items, dishId)
-        if (id < 0) {
+        val id = saveDish.execute(name, finalGrams, items, dishId)
+        if (id == null) {
             Toast.makeText(activity, R.string.duplicate_product, Toast.LENGTH_SHORT).show()
             return
         }

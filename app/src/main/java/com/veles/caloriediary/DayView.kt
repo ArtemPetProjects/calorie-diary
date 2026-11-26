@@ -21,6 +21,10 @@ import android.widget.ListView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import com.veles.caloriediary.domain.repository.DiaryRepository
+import com.veles.caloriediary.domain.usecase.AddEntryUseCase
+import com.veles.caloriediary.domain.usecase.GetDayOverviewUseCase
+import com.veles.caloriediary.domain.usecase.UpdateEntryWeightUseCase
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -29,7 +33,11 @@ import java.util.Locale
 class DayView(private val activity: Activity, initialDate: String? = null) {
 
     val view: View = LayoutInflater.from(activity).inflate(R.layout.fragment_day, null)
-    private val db = Db(activity)
+    private val repo: DiaryRepository = Db(activity)
+    private val getDayOverview = GetDayOverviewUseCase(repo)
+    private val addEntry = AddEntryUseCase(repo)
+    private val updateEntryWeight = UpdateEntryWeightUseCase(repo)
+    private val db = repo
     private val monthLabel: TextView = view.findViewById(R.id.monthLabel)
     private val dayStrip: LinearLayout = view.findViewById(R.id.dayStrip)
     private val entryList: LinearLayout = view.findViewById(R.id.entryList)
@@ -94,29 +102,24 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         monthLabel.text = "${months[cal.get(Calendar.MONTH)]} ${cal.get(Calendar.YEAR)}"
         renderWeek()
 
-        val entries = db.entries(selectedDate)
-        val totals = sum(entries.map { it.values })
-        val adjustment = db.adjustmentFor(selectedDate)
-        adjustmentInput.setText(if (adjustment == 0.0) "" else fmt(adjustment))
-        val targets = adjustTargets(db.targets(), adjustment)
-        bindBar(R.id.kcalBar, R.id.kcalValue, totals.kcal, targets.kcal)
-        bindBar(R.id.proteinBar, R.id.proteinValue, totals.protein, targets.protein)
-        bindBar(R.id.fatBar, R.id.fatValue, totals.fat, targets.fat)
-        bindBar(R.id.carbsBar, R.id.carbsValue, totals.carbs, targets.carbs)
+        val overview = getDayOverview.execute(selectedDate)
+        adjustmentInput.setText(if (overview.adjustment == 0.0) "" else fmt(overview.adjustment))
+        bindBar(R.id.kcalBar, R.id.kcalValue, overview.totals.kcal, overview.targets.kcal)
+        bindBar(R.id.proteinBar, R.id.proteinValue, overview.totals.protein, overview.targets.protein)
+        bindBar(R.id.fatBar, R.id.fatValue, overview.totals.fat, overview.targets.fat)
+        bindBar(R.id.carbsBar, R.id.carbsValue, overview.totals.carbs, overview.targets.carbs)
 
-        val weight = db.weightFor(selectedDate)
-        weightButton.text = if (weight != null) {
-            activity.getString(R.string.weight_today, fmt(weight))
+        weightButton.text = if (overview.weight != null) {
+            activity.getString(R.string.weight_today, fmt(overview.weight))
         } else {
             activity.getString(R.string.weight_unknown)
         }
         weightButton.setOnClickListener { openWeightDialog() }
-        continueDishButton.visibility =
-            if (db.drafts().isNotEmpty()) View.VISIBLE else View.GONE
+        continueDishButton.visibility = if (overview.hasDrafts) View.VISIBLE else View.GONE
 
         entryList.removeAllViews()
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        for (group in groupByMeal(entries)) {
+        for (group in overview.groups) {
             val box = LinearLayout(activity).apply {
                 orientation = LinearLayout.VERTICAL
                 background = activity.getDrawable(R.drawable.meal_group_border)
@@ -238,12 +241,10 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
             dialog.focusAndShowKeyboard(input, selectAll = true)
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
                 val grams = parseGrams(input.text.toString())
-                val scaled = if (grams != null) rescale(entry.values, entry.grams, grams) else null
-                if (grams == null || scaled == null) {
+                if (grams == null || !updateEntryWeight.execute(entry, grams)) {
                     Toast.makeText(activity, R.string.enter_weight, Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                db.updateEntry(entry.id, grams, scaled)
                 dialog.dismiss()
                 refresh()
             }
@@ -335,9 +336,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
         DishDialog(activity, db, dishId, draftId = draftId, onDraftSaved = { refresh() }) { id, grams, addToDay ->
             if (addToDay) {
                 db.products().firstOrNull { it.id == id }?.let { dish ->
-                    db.addEntry(
-                        Entry(0, selectedDate, id, dish.name, grams, forWeight(dish.per100, grams))
-                    )
+                    addEntry.execute(selectedDate, dish, grams)
                     refresh()
                 }
             }
@@ -486,7 +485,7 @@ class DayView(private val activity: Activity, initialDate: String? = null) {
                     product = db.products().first { it.id == id }
                 }
 
-                db.addEntry(Entry(0, selectedDate, product.id, product.name, grams, forWeight(product.per100, grams)))
+                addEntry.execute(selectedDate, product, grams)
                 dialog.dismiss()
                 refresh()
             }
